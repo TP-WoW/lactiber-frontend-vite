@@ -1,7 +1,8 @@
-import { useLocation } from "react-router-dom";
+import { memo } from 'react';
+import { useLocation } from 'react-router-dom';
 
-export default function Dashboard() {
-  const url = useLocation();
+const Notifications = () => {
+const url = useLocation();
   return (
     <div className="flex flex-col w-full h-auto md:px-4 mx-0 px-0 gap-2">
       <h1 className="font-extrabold text-3xl uppercase">{url.pathname.replace(/^\//, "").split("/").join(" > ")}</h1>
@@ -15,4 +16,6 @@ export default function Dashboard() {
         </div>
     </div>
   );
-}
+};
+
+export default memo(Notifications);

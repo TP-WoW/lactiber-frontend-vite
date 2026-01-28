@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -17,8 +17,18 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { ModeToggle } from "./components/theme-toggle";
+import Settings from "./pages/Settings";
+import Forms from "./pages/Forms";
+import Notifications from "./pages/Notifications";
+import FormDesigner from "./pages/FormDesigner";
+import Database from "./pages/Database";
+import Workflows from "./pages/Workflows";
+import Lookups from "./pages/Lookups";
+import { CustomForm } from "./pages/Form";
+import FormEditor from "./pages/FormEditor";
 
 function App() {
+  const url = useLocation()?.pathname;
   return (
     <div>
       <SidebarProvider>
@@ -35,14 +45,32 @@ function App() {
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">
-                        Building Your Application
-                      </BreadcrumbLink>
+                      <BreadcrumbLink href="#">Home</BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                    </BreadcrumbItem>
+                    {url
+                      .replace(/^\//, "")
+                      ?.split("/")
+                      ?.map((segment, index, array) => (
+                        <BreadcrumbItem key={index}>
+                          {index < array.length - 1 ? (
+                            <>
+                              <BreadcrumbLink
+                                href={"/" + array.slice(0, index + 1).join("/")}
+                              >
+                                {segment.charAt(0).toUpperCase() +
+                                  segment.slice(1).replace(/-/g, " ")}
+                              </BreadcrumbLink>
+                              <BreadcrumbSeparator className="hidden md:block" />
+                            </>
+                          ) : (
+                            <BreadcrumbPage>
+                              {segment.charAt(0).toUpperCase() +
+                                segment.slice(1).replace(/-/g, " ")}
+                            </BreadcrumbPage>
+                          )}
+                        </BreadcrumbItem>
+                      ))}
                   </BreadcrumbList>
                 </Breadcrumb>
                 <ModeToggle />
@@ -52,6 +80,15 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/forms" element={<Forms />} />
+            <Route path="/dashboard/forms/form" element={<CustomForm />} />
+            <Route path="/dashboard/notifications" element={<Notifications />} />
+            <Route path="/designer/forms" element={<FormDesigner />} />
+            <Route path="/designer/forms/form" element={<FormEditor />} />
+            <Route path="/designer/workflows" element={<Workflows />} />
+            <Route path="/designer/lookups" element={<Lookups />} />
+            <Route path="/designer/database" element={<Database />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </SidebarInset>
       </SidebarProvider>
