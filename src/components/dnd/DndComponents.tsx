@@ -7,10 +7,12 @@ import {
 } from "lucide-react";
 import { FormAttributeDrawer } from "../FormAttributeDrawer";
 import { toolItems } from "@/data/data";
+import { useFormEditor } from "@/hooks/use-formEditor";
 
 export const DndComponent = ({ item }: { item: DbAttribute }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.id });
+  const { items, setItems } = useFormEditor();
   const style = {
     transform: transform
       ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
@@ -44,7 +46,10 @@ export const DndComponent = ({ item }: { item: DbAttribute }) => {
           <h3 className="italic text-sm">{item.dataType}</h3>
         </div>
       </div>
-      <Trash2 className="text-secondary-foreground hover:cursor-pointer" />
+      <Trash2
+        className="text-secondary-foreground hover:cursor-pointer"
+        onClick={() => setItems(items.filter((it) => it.id !== item.id))}
+      />
       {/* El botón del Drawer NO debe tener listeners de drag */}
       <FormAttributeDrawer item={item} />
     </div>

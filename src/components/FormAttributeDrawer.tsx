@@ -9,51 +9,99 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import type { DbAttribute } from "@/types/types";
-import { Settings } from "lucide-react";
+import type { FormAttributeUpdateType } from "@/types/types";
+import { Settings, Trash2Icon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
 import { useState } from "react";
 import { Input } from "./ui/input";
+import { useFormEditor } from "@/hooks/use-formEditor";
+import { Textarea } from "./ui/textarea";
 
-export function FormAttributeDrawer({ item }: { item: DbAttribute }) {
+export function FormAttributeDrawer({
+  item,
+}: {
+  item: FormAttributeUpdateType;
+}) {
+  const { items, setItems } = useFormEditor();
+  const curItem: FormAttributeUpdateType =
+    items.find((it) => it.id === item.id) ?? item;
+
+  const [newSettings, setNewSettings] = useState<FormAttributeUpdateType>(
+    curItem ?? item,
+  );
   const [options, setOptions] = useState<
     Array<{ value: string; label: string }>
-  >([]);
+  >(
+    (() => {
+      if (typeof curItem?.optionsJson === "string") {
+        try {
+          const parsed = JSON.parse(curItem.optionsJson);
+          if (
+            Array.isArray(parsed) &&
+            parsed.every(
+              (opt) =>
+                typeof opt === "object" && "value" in opt && "label" in opt,
+            )
+          ) {
+            return parsed as Array<{ value: string; label: string }>;
+          }
+          return [];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    })(),
+  );
 
   const handleAddOption = () => {
-    setOptions((prevOptions) => {
-      // prevOptions is Array<{ value: string; label: string }>
-      return [
-        ...(prevOptions as Array<{ value: string; label: string }>),
-        { value: "", label: "" },
-      ];
-    });
+    console.log("Current Item in Drawer:", curItem);
+    console.log("Current Options in Drawer:", options);
+    setOptions((prevOptions) => [...prevOptions, { value: "", label: "" }]);
   };
 
   const handleInputChange = (name: string, value: string) => {
-    // console.log("Changed value:", name, value);
-    // Lógica para manejar el cambio en las opciones
+    setNewSettings((prevSettings) => ({
+      ...prevSettings,
+      [name]: value,
+    }));
+  };
+
+  const handleOptionsChange = (name: string, value: string) => {
     const [field, indexStr] = name.split("-");
     const index = parseInt(indexStr, 10);
-    // console.log("Field:", field, "Index:", index);
-
     setOptions((prevOptions) => {
       const updatedOptions = [...prevOptions];
-      if (
-        Array.isArray(updatedOptions) &&
-        updatedOptions.length > 0 &&
-        typeof updatedOptions[0] === "object"
-      ) {
-        // Array<{ value, label }>
-        updatedOptions[index] = {
-          ...(updatedOptions[index] as { value: string; label: string }),
-          [field]: value,
-        };
-      }
+      updatedOptions[index] = {
+        ...updatedOptions[index],
+        [field]: value,
+      };
       return updatedOptions;
     });
-    console.log("Updated options:", options);
+  };
+
+  const handleSave = () => {
+    // Aquí iría la lógica para guardar los cambios realizados en el Drawer
+    console.log("Saving changes for item:", curItem?.id);
+    // Por ejemplo, podrías actualizar el estado global o hacer una llamada a una API
+    console.log("Updated Options:", options);
+    setNewSettings((prevSettings) => ({
+      ...prevSettings,
+      optionsJson: options,
+    }));
+    console.log("New Settings to Save:", newSettings);
+    setItems((prevItems) =>
+      prevItems.map((it) =>
+        it.id === curItem?.id
+          ? { ...it, ...newSettings, options: options }
+          : it,
+      ),
+    );
+  };
+
+  const handleRemoveOption = (index: number) => {
+    setOptions((prevOptions) => prevOptions.filter((_, idx) => idx !== index));
   };
 
   return (
@@ -68,7 +116,6 @@ export function FormAttributeDrawer({ item }: { item: DbAttribute }) {
           <DrawerTitle>{item.dataType.toUpperCase()}</DrawerTitle>
           <DrawerDescription>Configure the form attribute.</DrawerDescription>
         </DrawerHeader>
-
         <Tabs defaultValue="general">
           <TabsList variant="line">
             <TabsTrigger value="general">General</TabsTrigger>
@@ -78,34 +125,48 @@ export function FormAttributeDrawer({ item }: { item: DbAttribute }) {
             <div className="no-scrollbar overflow-y-auto px-4 flex flex-col gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Name</label>
-                <input
+                <Input
                   className="w-full border rounded px-2 py-1"
-                  defaultValue={item.name}
+                  defaultValue={newSettings.name || item.name}
+                  name="name"
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Label</label>
-                <input
+                <Input
                   className="w-full border rounded px-2 py-1"
-                  defaultValue={item.label}
+                  defaultValue={newSettings.label || item.label}
+                  name="label"
+                  onChange={(e) => handleInputChange("label", e.target.value)}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Description
                 </label>
-                <textarea
+                <Textarea
                   className="w-full border rounded px-2 py-1"
-                  defaultValue={item.description || ""}
+                  defaultValue={
+                    newSettings.description || item.description || ""
+                  }
+                  name="description"
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Default Value
                 </label>
-                <input
+                <Input
                   className="w-full border rounded px-2 py-1"
                   defaultValue={item.defaultValue ?? ""}
+                  name="defaultValue"
+                  onChange={(e) =>
+                    handleInputChange("defaultValue", e.target.value)
+                  }
                 />
               </div>
               {/* Si el tipo es numérico, mostrar Max y Min */}
@@ -115,20 +176,24 @@ export function FormAttributeDrawer({ item }: { item: DbAttribute }) {
                     <label className="block text-sm font-medium mb-1">
                       Max
                     </label>
-                    <input
+                    <Input
                       type="number"
                       className="w-full border rounded px-2 py-1"
                       defaultValue={item.max ?? ""}
+                      name="max"
+                      onChange={(e) => handleInputChange("max", e.target.value)}
                     />
                   </div>
                   <div className="flex-1">
                     <label className="block text-sm font-medium mb-1">
                       Min
                     </label>
-                    <input
+                    <Input
                       type="number"
                       className="w-full border rounded px-2 py-1"
                       defaultValue={item.min ?? ""}
+                      name="min"
+                      onChange={(e) => handleInputChange("min", e.target.value)}
                     />
                   </div>
                 </div>
@@ -137,53 +202,44 @@ export function FormAttributeDrawer({ item }: { item: DbAttribute }) {
           </TabsContent>
           <TabsContent value="advanced">
             <div className="no-scrollbar overflow-y-auto px-4 flex flex-col gap-4">
-              <div className="w-full flex flex-col gap-2">
-                <label className="block text-sm font-medium mb-1">
-                  Options
-                </label>
-                <label className="block text-sm font-medium mb-1">
-                  Default
-                </label>
-                <input
-                  className="w-full border rounded px-2 py-1"
-                  defaultValue=""
-                />
-                {options?.map((option, index) => (
-                  <div key={index} className="grid grid-cols-2 gap-2">
-                    <label className="block text-sm font-medium mb-1">
-                      Value
-                    </label>
-                    <label className="block text-sm font-medium mb-1">
-                      Label
-                    </label>
-                    <Input
-                      className="w-full border rounded px-2 py-1"
-                      defaultValue=""
-                      name={`value-${index}`}
-                      onChange={(e) =>
-                        handleInputChange(`value-${index}`, e.target.value)
-                      }
+              {(curItem?.dataType === "select" ||
+                curItem?.dataType === "radio" ||
+                curItem?.dataType === "checkbox") && (
+                <div className="w-full flex flex-col gap-2">
+                  <label className="block text-sm font-medium mb-1">
+                    Options
+                  </label>
+                  <label className="block text-sm font-medium mb-1">
+                    Default
+                  </label>
+                  <Input
+                    className="w-full border rounded px-2 py-1"
+                    defaultValue=""
+                    name="defaultValue"
+                    onChange={(e) =>
+                      handleInputChange("defaultValue", e.target.value)
+                    }
+                  />
+                  {options?.map((option, index) => (
+                    <OptionsComponent
+                      key={index}
+                      option={option}
+                      index={index}
+                      handleOptionsChange={handleOptionsChange}
+                      item={item}
+                      handleRemoveOption={handleRemoveOption}
                     />
-                    <Input
-                      className="w-full border rounded px-2 py-1"
-                      defaultValue=""
-                      name={`label-${index}`}
-                      onChange={(e) =>
-                        handleInputChange(`label-${index}`, e.target.value)
-                      }
-                      disabled={item.dataType === "select" ? false : true}
-                    />
-                  </div>
-                ))}
-                <Separator className="my-2" />
-                <Button onClick={handleAddOption}>Add Option</Button>
-              </div>
+                  ))}
+                  <Separator className="my-2" />
+                  <Button onClick={handleAddOption}>Add Option</Button>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
 
         <DrawerFooter>
-          <Button>Save</Button>
+          <Button onClick={handleSave}>Save</Button>
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>
           </DrawerClose>
@@ -192,3 +248,45 @@ export function FormAttributeDrawer({ item }: { item: DbAttribute }) {
     </Drawer>
   );
 }
+
+const OptionsComponent = ({
+  option,
+  index,
+  handleOptionsChange,
+  handleRemoveOption,
+  item,
+}: {
+  option: { value: string; label: string };
+  index: number;
+  handleOptionsChange: (name: string, value: string) => void;
+  item: FormAttributeUpdateType;
+  handleRemoveOption: (index: number) => void;
+}) => {
+  return (
+    <div className="grid grid-cols-[2fr_2fr_1fr] gap-2 w-full max-w-full">
+      <label className="block text-sm font-medium mb-1">Value</label>
+      <label className="block text-sm font-medium mb-1">Label</label>
+      <label className="block text-sm font-medium mb-1"></label>
+      <Input
+        className="w-full border rounded px-2 py-1"
+        defaultValue={option.value}
+        name={`value-${index}`}
+        onChange={(e) => handleOptionsChange(`value-${index}`, e.target.value)}
+      />
+      <Input
+        className="w-full border rounded px-2 py-1"
+        defaultValue={option.label}
+        name={`label-${index}`}
+        onChange={(e) => handleOptionsChange(`label-${index}`, e.target.value)}
+        disabled={item.dataType === "select" ? false : true}
+      />
+      <Button
+        variant="outline"
+        className="hover:cursor-pointer"
+        onClick={() => handleRemoveOption(index)}
+      >
+        <Trash2Icon />
+      </Button>
+    </div>
+  );
+};
