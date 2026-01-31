@@ -5,14 +5,17 @@ import "./index.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "./components/theme-provider.tsx";
 import { Toaster } from "./components/ui/sonner.tsx";
+import { UserProvider } from "@/contexts/user-context-provider.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <BrowserRouter>
-        <App />
-        <Toaster />
-      </BrowserRouter>
-    </ThemeProvider>
+    <UserProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <BrowserRouter>
+          <App />
+          <Toaster />
+        </BrowserRouter>
+      </ThemeProvider>
+    </UserProvider>
   </StrictMode>,
 );

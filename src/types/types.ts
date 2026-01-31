@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { z } from "zod"
+
 
 // Tipos de dato que esperas desde BD
 export type DataType = "text" | "number" | "select" | "date" | "checkbox" | "textarea" | "radio" | "switch" | "panel" | "custom";
@@ -21,6 +23,24 @@ export type DbAttribute = {
   orderIndex: number;
   options?: Array<{ value: string; label: string }> | string[]; // según definas
 };
+
+/*
+  Atributos específicos para reportes
+*/
+
+export type ReportAttribute = DbAttribute & {
+  reportId?: string;
+  reportStatus?: string;
+  reportName?: string;
+  reportDescription?: string;
+  reportCreatedBy?: string;
+  reportCreatedAt?: string;
+  reportStartedAt?: string;
+  reportLastUpdateAt?: string;
+  reportAssignedTo?: string;  
+  optionsJson?: string; // JSON string from DB
+  attributeValue?: string | number | boolean | null; // Valor específico para este reporte
+}
 
 export type FormAttributeInsertType = Omit<DbAttribute, 'options'> & {
   createdBy?: string;
@@ -55,23 +75,95 @@ export type FormInfo = {
   createdAt: string;
   updatedAt?: string;
   createdBy: string;
-  status: "draft" | "in progress" | "submitted" | "published";
+  status: FormStatus;
   attributes: DbAttribute[];
 };
 
-// export type ComponentType = {
-//   type: DataType;
-//   id: string;
-//   name: string;
-//   label: string;
-//   description?: string;
-//   options?: Array<{ value: string; label: string }> | string[];
-//   defaultValue?: unknown;
-//   required?: boolean;
-//   maxLength?: number;
-//   minLength?: number;
-//   max?: number;
-//   min?: number;
-//   orderIndex: number;
-//   readonly?: boolean;
-// }
+export const FormStatus = {
+  DRAFT: "draft",
+  IN_PROGRESS: "in progress",
+  SUBMITTED: "submitted",
+  PUBLISHED: "published",
+} as const;
+
+export type FormStatus = typeof FormStatus[keyof typeof FormStatus];
+
+export const ReportStatus = {
+  NEW: "new",
+  STARTED: "started",
+  CANCELLED: "cancelled",
+  SUBMITTED: "submitted",
+  COMPLETE: "complete",
+} as const;
+
+export type ReportStatus = typeof ReportStatus[keyof typeof ReportStatus];
+
+export type FormReport = {
+  id: string;
+  formId: string;
+  title?: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  createdBy: string;
+  status: ReportStatus;
+  startedAt?: string;
+  submittedAt?: string;
+  lastUpdatedAt?: string;
+  optionsJson?: string;
+  parameters?: ReportParameter[];
+  assignedTo?: string;
+  reviewer?: string;
+}
+
+export type ReportParameter = {
+  id: string;
+  reportId: string;
+  attributeId: string;
+  value: string | number | boolean | null;
+  updatedAt?: string;
+  updatedBy?: string;
+  options?: Array<{ value: string; label: string }>;
+}
+  export type TransformedReport = {
+    id: number;
+    reportId: string;    
+    name: string;
+    description?: string;
+    form: string;
+    formId?: string;
+    status: string;
+    assignedTo: string;
+    reviewer: string;
+    createdAt?: string;
+  };
+
+export const formReportTableSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  form: z.string(),
+  status: z.string(),
+  target: z.string(),
+  limit: z.string(),
+  reviewer: z.string(),
+})
+
+export type User = {
+  id: string;
+  userName: string;
+  email?: string;
+  displayName?: string;
+  isActive?: boolean;
+  roleId?: string;
+  roleName?: string;
+  roleDescription?: string;
+  permissionsJson?: string;
+  avatar?: string | "/avatars/shadcn.jpg";
+  // Agrega más campos según tu modelo de usuario
+}
+
+export type LoginResponse = User & {
+  statusCode: number;
+  message: string; 
+}
+

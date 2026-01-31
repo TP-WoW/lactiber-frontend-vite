@@ -12,8 +12,10 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { data } from "@/data/data"
+import { useUser } from "@/hooks/use-user"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const {user} = useUser()
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -24,7 +26,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {user && (<NavUser user={user} />)}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

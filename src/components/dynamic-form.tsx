@@ -1,10 +1,8 @@
 import type {
   DataType,
-  DbAttribute,
-  FormComponent,
-  FormComponentProps,
+  ReportAttribute,
 } from "@/types/types";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type JSX } from "react";
 import { Button } from "./ui/button";
 import {
   Field,
@@ -16,7 +14,7 @@ import {
   FieldSet,
 } from "./ui/field";
 import { Input } from "./ui/input";
-import { SaveIcon, SendIcon } from "lucide-react";
+import { LogOut, SaveIcon, SendIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { format } from "date-fns/format";
@@ -32,18 +30,23 @@ import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
 import { Switch } from "./ui/switch";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { useNavigate } from "react-router-dom";
 
 // Render dinámico desde BD
 export function DynamicForm({
   attributes,
   onSubmit,
+  isEditable,
 }: {
-  attributes: DbAttribute[];
+  attributes: ReportAttribute[];
+  isEditable: boolean;
   onSubmit?: (
     values: Record<string, unknown>,
     e: FormEvent<HTMLFormElement>,
   ) => void | Promise<void>;
 }) {
+  const [editable] = useState<boolean>(isEditable);
+  const navigate = useNavigate();
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -100,24 +103,7 @@ export function DynamicForm({
     // 4) Callback al padre
     await onSubmit?.(values, e);
   };
-
-  const handleChange = (name: string, value: unknown) => {
-    // Aquí podrías manejar cambios si es necesario
-    if (
-      value &&
-      typeof value === "object" &&
-      "target" in value &&
-      value.target &&
-      typeof (value.target as HTMLInputElement).value !== "undefined"
-    ) {
-      console.log(
-        `Field changed: ${name} =`,
-        (value as { target: { value: unknown } }).target.value,
-      );
-    } else {
-      console.log(`Field changed: ${name} =`, value);
-    }
-  };
+  // console.log("Rendering DynamicForm with attributes:", attributes);
 
   return (
     <form className="flex flex-col" onSubmit={handleSubmit}>
@@ -143,25 +129,13 @@ export function DynamicForm({
                 key={attr.name}
                 className="bg-muted/50 aspect-video p-4 rounded-lg"
               >
-                <Comp
-                  name={attr.name}
-                  label={attr.label}
-                  required={attr.isRequired}
-                  options={attr.options}
-                  defaultValue={attr.defaultValue}
-                  description={attr.description}
-                  maxLength={attr.maxLength}
-                  minLength={attr.minLength}
-                  max={attr.max}
-                  min={attr.min}
-                  onChange={(e) => handleChange(attr.name, e)}
-                />
+                {Comp(attr, editable)}
               </div>
             );
           })}
       </div>
       <Separator className="my-4" />
-      <div className="flex flex-col items-center justify-between md:flex-row gap-2 mt-2">
+      <div className="flex flex-col items-center justify-between md:justify-end md:flex-row gap-2 mt-2">
         <Button
           type="submit"
           className="rounded-lg hover:cursor-pointer md:w-fit w-full"
@@ -176,6 +150,14 @@ export function DynamicForm({
           <SaveIcon className="mr-2 h-4 w-4" />
           Save
         </Button>
+        <Button
+          variant="outline"
+          className="rounded-lg hover:cursor-pointer md:w-fit w-full"
+          onClick={() => navigate('/dashboard/forms')}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Volver
+        </Button>
       </div>
     </form>
   );
@@ -184,48 +166,53 @@ export function DynamicForm({
 // Componentes específicos por tipo
 
 export const FormComponentInput = ({
-  props,
+  attr,
   type,
+  editable,
 }: {
-  props: FormComponentProps;
+  attr: ReportAttribute;
   type: "text" | "number" | "email" | "password";
+  editable: boolean;
 }) => {
-  console.log("Rendering Input for", props);
   return (
     <Field className="w-fit">
-      <FieldLabel htmlFor={props.name}>{props.label}</FieldLabel>
+      <FieldLabel htmlFor={attr.name}>{attr.label}</FieldLabel>
       <Input
-        id={props.name}
-        name={props.name}
+        id={attr.name}
+        name={attr.name}
         type={type}
-        placeholder={props.label}
-        required={props.required || false}
+        placeholder={attr.label}
+        required={attr.isRequired || false}
         className="rounded-lg"
-        onChange={props.onChange}
+        disabled={!editable}
+        // onChange={attr.onChange}
       />
-      <FieldDescription>{props.description || ""}</FieldDescription>
+      <FieldDescription>{attr.description || ""}</FieldDescription>
     </Field>
   );
 };
 
 export const FormComponentSelect = ({
-  props,
+  attr,
+  editable,
 }: {
-  props: FormComponentProps;
+  attr: ReportAttribute;
+  editable: boolean;
 }) => {
   return (
     <Field className="w-fit">
-      <FieldLabel htmlFor={props.name}>{props.label}</FieldLabel>
+      <FieldLabel htmlFor={attr.name}>{attr.label}</FieldLabel>
       <Select
-        name={props.name}
-        required={props.required || false}
-        defaultValue={props.defaultValue as string}
+        name={attr.name}
+        required={attr.isRequired || false}
+        defaultValue={attr.defaultValue as string}
+        disabled={!editable}
       >
         <SelectTrigger className="">
-          <SelectValue placeholder={props.defaultValue as string} />
+          <SelectValue placeholder={attr.defaultValue as string} />
         </SelectTrigger>
         <SelectContent>
-          {(props.options ?? []).map((opt) =>
+          {(attr.options ?? []).map((opt) =>
             typeof opt === "string" ? (
               <SelectItem key={opt} value={opt}>
                 {opt}
@@ -238,22 +225,23 @@ export const FormComponentSelect = ({
           )}
         </SelectContent>
       </Select>
-      <FieldDescription>{props.description || ""}</FieldDescription>
+      <FieldDescription>{attr.description || ""}</FieldDescription>
     </Field>
   );
 };
 
-export const FormComponentDate = ({ props }: { props: FormComponentProps }) => {
+export const FormComponentDate = ({ attr, editable }: { attr: ReportAttribute; editable: boolean }) => {
   const [date, setDate] = useState<Date>();
   return (
     <Field className="w-fit">
-      <FieldLabel htmlFor="date-picker-simple">{props.label}</FieldLabel>
+      <FieldLabel htmlFor="date-picker-simple">{attr.label}</FieldLabel>
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             id="date-picker-simple"
             className="justify-start font-normal"
+            disabled={!editable}
           >
             {date ? format(date, "PPP") : <span>Pick a date</span>}
           </Button>
@@ -263,6 +251,7 @@ export const FormComponentDate = ({ props }: { props: FormComponentProps }) => {
             mode="single"
             selected={date}
             onSelect={setDate}
+            disabled={!editable}
             defaultMonth={date}
           />
         </PopoverContent>
@@ -270,31 +259,35 @@ export const FormComponentDate = ({ props }: { props: FormComponentProps }) => {
       {/* Este input oculto es el que FormData recogerá */}
       <input
         type="hidden"
-        name={props.name}
+        name={attr.name}
         value={date ? format(date, "yyyy-MM-dd") : ""}
+        disabled={!editable}
       />
-      <FieldDescription>{props.description || ""}</FieldDescription>
+      <FieldDescription>{attr.description || ""}</FieldDescription>
     </Field>
   );
 };
 
 export const FormComponentCheckbox = ({
-  props,
+  attr,
+  editable,
 }: {
-  props: FormComponentProps;
+  attr: ReportAttribute;
+  editable: boolean;
 }) => {
   return (
     <FieldGroup className="w-full">
       <Field orientation="horizontal" className="w-fit">
         <Checkbox
-          id={props.name}
-          name={props.name}
-          defaultChecked={!!props.defaultValue}
+          id={attr.name}
+          name={attr.name}
+          defaultChecked={!attr.defaultValue}
+          disabled={!editable}
         />
         <FieldContent>
-          <FieldLabel htmlFor={props.name}>{props.label}</FieldLabel>
+          <FieldLabel htmlFor={attr.name}>{attr.label}</FieldLabel>
           <FieldDescription className="text-wrap">
-            {props.description || ""}
+            {attr.description || ""}
           </FieldDescription>
         </FieldContent>
       </Field>
@@ -303,53 +296,59 @@ export const FormComponentCheckbox = ({
 };
 
 export const FormComponentTextArea = ({
-  props,
+  attr,
+  editable,
 }: {
-  props: FormComponentProps;
+  attr: ReportAttribute;
+  editable: boolean;
 }) => {
   return (
     <Field className="w-fit">
-      <FieldLabel htmlFor={props.name}>{props.label}</FieldLabel>
-      <Textarea id={props.name} name={props.name} placeholder={props.label} />
-      <FieldDescription>{props.description || ""}</FieldDescription>
+      <FieldLabel htmlFor={attr.name}>{attr.label}</FieldLabel>
+      <Textarea id={attr.name} name={attr.name} placeholder={attr.label} disabled={!editable} />
+      <FieldDescription>{attr.description || ""}</FieldDescription>
     </Field>
   );
 };
 
 export const FormComponentSwitch = ({
-  props,
+  attr,
+  editable,
 }: {
-  props: FormComponentProps;
+  attr: ReportAttribute;
+  editable: boolean;
 }) => {
   return (
     <Field orientation="horizontal" className="w-fit">
       <FieldContent>
-        <FieldLabel htmlFor={props.name}>{props.label}</FieldLabel>
-        <FieldDescription>{props.description || ""}</FieldDescription>
+        <FieldLabel htmlFor={attr.name}>{attr.label}</FieldLabel>
+        <FieldDescription>{attr.description || ""}</FieldDescription>
       </FieldContent>
       <Switch
-        id={props.name}
-        name={props.name}
-        defaultChecked={!!props.defaultValue}
-        disabled={false}
+        id={attr.name}
+        name={attr.name}
+        defaultChecked={!!attr.defaultValue}
+        disabled={!editable}
       />
     </Field>
   );
 };
 
 export const FormComponentRadio = ({
-  props,
+  attr,
+  editable,
 }: {
-  props: FormComponentProps;
+  attr: ReportAttribute;
+  editable: boolean;
 }) => {
   return (
     <FieldSet className="w-full">
-      <FieldLegend variant="label">{props.label}</FieldLegend>
+      <FieldLegend variant="label">{attr.label}</FieldLegend>
       <FieldDescription>
-        {props.description || ""}
+        {attr.description || ""}
       </FieldDescription>
-      <RadioGroup defaultValue="monthly">
-        {(props.options ?? []).map((opt) =>
+      <RadioGroup defaultValue="monthly" name={attr.name} className="mt-2 space-y-2" disabled={!editable}>
+        {(JSON.parse(attr.optionsJson ?? "[]") ?? []).map((opt: {value: string; label: string}) =>
           typeof opt === "string" ? (
             <Field orientation="horizontal" key={opt}>
               <RadioGroupItem value={opt} id={`plan-${opt}`} />
@@ -359,7 +358,7 @@ export const FormComponentRadio = ({
             </Field>
           ) : (
             <Field orientation="horizontal" key={opt.value}>
-              <RadioGroupItem value={opt.value} id={`plan-${opt.value}`} defaultChecked={props.defaultValue === opt.value} />
+              <RadioGroupItem value={opt.value} id={`plan-${opt.value}`} defaultChecked={attr.defaultValue === opt.value} />
               <FieldLabel htmlFor={`plan-${opt.value}`} className="font-normal">
                 {opt.label}
               </FieldLabel>
@@ -372,14 +371,15 @@ export const FormComponentRadio = ({
 };
 
 // Mapeo de componentes por tipo de dato
-const componentsByType: Record<DataType, FormComponent> = {
-  text: (p) => <FormComponentInput props={p} type="text" />,
-  number: (p) => <FormComponentInput props={p} type="number" />,
-  select: (p) => <FormComponentSelect props={p} />,
-  date: (p) => <FormComponentDate props={p} />,
-  checkbox: (p) => <FormComponentCheckbox props={p} />,
-  textarea: (p) => <FormComponentTextArea props={p} />,
-  radio: (p) => <FormComponentRadio props={p} />,
-  switch: (p) => <FormComponentSwitch props={p} />,
-  panel: (p) => <div>Panel {p.name} component not implemented yet.</div>,
+const componentsByType: Record<DataType, (attr: ReportAttribute, editable: boolean) => JSX.Element> = {
+  text: (attr: ReportAttribute, editable: boolean) => <FormComponentInput attr={attr} editable={editable} type="text" />,
+  number: (attr, editable) => <FormComponentInput attr={attr} editable={editable} type="number" />,
+  select: (attr, editable) => <FormComponentSelect attr={attr} editable={editable} />,
+  date: (attr, editable) => <FormComponentDate attr={attr} editable={editable} />,
+  checkbox: (attr, editable) => <FormComponentCheckbox attr={attr} editable={editable} />,
+  textarea: (attr, editable) => <FormComponentTextArea attr={attr} editable={editable} />,
+  radio: (attr, editable) => <FormComponentRadio attr={attr} editable={editable} />,
+  switch: (attr, editable) => <FormComponentSwitch attr={attr} editable={editable} />,
+  panel: (p, editable) => <div>Panel {p.name} component not implemented yet. and editable: {editable.toString()}</div>,
+  custom: (p, editable) => <div>Custom {p.name} component not implemented yet. and editable: {editable.toString()}</div>,
 };

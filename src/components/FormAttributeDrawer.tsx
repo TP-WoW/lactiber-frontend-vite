@@ -62,10 +62,18 @@ export function FormAttributeDrawer({
   };
 
   const handleInputChange = (name: string, value: string) => {
-    setNewSettings((prevSettings) => ({
-      ...prevSettings,
-      [name]: value,
-    }));
+    if (name === "name") {
+      value = value.replace(/[\s-]+/g, "_").toLowerCase();
+      setNewSettings((prevSettings) => ({
+        ...prevSettings,
+        [name]: value,
+      }));
+    } else {
+      setNewSettings((prevSettings) => ({
+        ...prevSettings,
+        [name]: value,
+      }));
+    }
   };
 
   const handleOptionsChange = (name: string, value: string) => {
@@ -278,7 +286,13 @@ const OptionsComponent = ({
         defaultValue={option.label}
         name={`label-${index}`}
         onChange={(e) => handleOptionsChange(`label-${index}`, e.target.value)}
-        disabled={item.dataType === "select" ? false : true}
+        disabled={
+          item.dataType === "select" ||
+          item.dataType === "radio" ||
+          item.dataType === "checkbox"
+            ? false
+            : true
+        }
       />
       <Button
         variant="outline"

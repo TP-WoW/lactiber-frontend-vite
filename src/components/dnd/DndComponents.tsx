@@ -42,8 +42,8 @@ export const DndComponent = ({ item }: { item: DbAttribute }) => {
           })()
         }
         <div className="flex flex-col">
-          <p>{item.name || "Unnamed"}</p>
-          <h3 className="italic text-sm">{item.dataType}</h3>
+          <p>{item.label || "Unnamed"}</p>
+          <h3 className="italic text-sm">{item.description || "No description"}</h3>
         </div>
       </div>
       <Trash2
