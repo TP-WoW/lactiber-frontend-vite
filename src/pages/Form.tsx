@@ -2,7 +2,7 @@ import { fetchReportParameters } from "@/actions/formReportActions";
 import { DynamicForm } from "@/components/dynamic-form";
 import { Badge } from "@/components/ui/badge";
 import { cn, keysToCamelCase } from "@/lib/utils";
-import type { ReportAttribute } from "@/types/types";
+import { ReportStatus, type ReportAttribute } from "@/types/types";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -119,7 +119,7 @@ export const CustomForm = () => {
             <DynamicForm
               attributes={reportParams}
               onSubmit={(values) => handleSubmit(values)}
-              isEditable={reportParams[0]?.reportStatus === "in-progress" || reportParams[0]?.reportStatus === "new"}
+              isEditable={reportParams[0]?.reportStatus === ReportStatus.NEW || reportParams[0]?.reportStatus === ReportStatus.STARTED}
             />
           </div>
         </div>

@@ -100,6 +100,7 @@ import {
 import { ReportStatus, type TransformedReport } from "@/types/types";
 import { useNavigate } from "react-router-dom";
 import { Textarea } from "../ui/textarea";
+import { toast } from "sonner";
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -689,17 +690,68 @@ function TableCellViewer({ item }: { item: TransformedReport }) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
+  const [formOptions, setFormOptions] = React.useState<
+    { name: string; value: string }[]
+  >([]);
+
+  const [formEditData, setFormEditData] = React.useState<{
+    name: string;
+    description: string;
+    assignedTo: string;
+    reviewer: string;
+  }>({
+    name: item.name,
+    description: item.description || "",
+    assignedTo: item.assignedTo,
+    reviewer: item.reviewer,
+  });
+
+  const handleStartReport = async () => {
+    // Navigate to the report page using the reportId
+    if (item.status === ReportStatus.NEW) {
+      // Update the status to STARTED before navigating
+      try {
+        const result = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/form-reports/${item.reportId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              description: formEditData.description,
+              status: ReportStatus.STARTED,
+              optionsJson: JSON.stringify({ formOptions }),
+              assignedTo: formEditData.assignedTo,
+              reviewer: formEditData.reviewer,
+            }),
+          },
+        );
+        if (result.ok) {
+          console.log("Report status updated to STARTED");
+          toast.success(`Informe "${formEditData.name}" iniciado.`);
+        }
+      } catch (error) {
+        console.error("Error updating report status:", error);
+        toast.error(`Error al iniciar el informe "${formEditData.name}".`);
+      }
+    }
+    navigate(`/dashboard/forms/form?reportId=${item.reportId}`);
+  };
+
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.name}
+          {formEditData.name}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.name}</DrawerTitle>
-          <DrawerDescription>{item.description || ""}</DrawerDescription>
+          <DrawerTitle>{formEditData.name}</DrawerTitle>
+          <DrawerDescription>
+            {formEditData.description || ""}
+          </DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
           {!isMobile && (
@@ -760,12 +812,30 @@ function TableCellViewer({ item }: { item: TransformedReport }) {
           <form className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
               <Label htmlFor="name">Nombre</Label>
-              <Input id="name" defaultValue={item.name} />
+              <Input
+                id="name"
+                name="name"
+                defaultValue={formEditData.name}
+                onChange={(e) =>
+                  setFormEditData({ ...formEditData, name: e.target.value })
+                }
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="area">Area</Label>
-                <Select defaultValue="production">
+                <Select
+                  name="area"
+                  defaultValue="production"
+                  onValueChange={(e) =>
+                    setFormOptions((prev) => {
+                      const otherOptions = prev.filter(
+                        (option) => option.name !== "area",
+                      );
+                      return [...otherOptions, { name: "area", value: e }];
+                    })
+                  }
+                >
                   <SelectTrigger id="area" className="w-full">
                     <SelectValue placeholder="Select area" />
                   </SelectTrigger>
@@ -792,8 +862,19 @@ function TableCellViewer({ item }: { item: TransformedReport }) {
             </div>
             <div className="flex flex-col gap-3">
               <Label htmlFor="category">Categoría</Label>
-              <Select defaultValue="cat-1">
-                <SelectTrigger id="reviewer" className="w-full">
+              <Select
+                name="category"
+                defaultValue="cat-1"
+                onValueChange={(e) =>
+                  setFormOptions((prev) => {
+                    const otherOptions = prev.filter(
+                      (option) => option.name !== "category",
+                    );
+                    return [...otherOptions, { name: "category", value: e }];
+                  })
+                }
+              >
+                <SelectTrigger id="category" className="w-full">
                   <SelectValue placeholder="Seleccione una categoría" />
                 </SelectTrigger>
                 <SelectContent>
@@ -813,7 +894,18 @@ function TableCellViewer({ item }: { item: TransformedReport }) {
             </div>
             <div className="flex flex-col gap-3">
               <Label htmlFor="comments">Comentarios</Label>
-              <Textarea id="comments" defaultValue={item.description} placeholder="" />
+              <Textarea
+                name="description"
+                id="comments"
+                defaultValue={formEditData.description}
+                placeholder=""
+                onChange={(e) =>
+                  setFormEditData({
+                    ...formEditData,
+                    [e.target.name]: e.target.value,
+                  })
+                }
+              />
             </div>
           </form>
         </div>
@@ -834,13 +926,7 @@ function TableCellViewer({ item }: { item: TransformedReport }) {
                 buttonLabel = "Ver Informe";
             }
             return (
-              <Button
-                onClick={() =>
-                  navigate(`/dashboard/forms/form?reportId=${item.reportId}`)
-                }
-              >
-                {buttonLabel}
-              </Button>
+              <Button onClick={() => handleStartReport()}>{buttonLabel}</Button>
             );
           })()}
           <DrawerClose asChild>

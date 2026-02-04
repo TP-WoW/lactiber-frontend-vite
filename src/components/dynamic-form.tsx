@@ -1,7 +1,4 @@
-import type {
-  DataType,
-  ReportAttribute,
-} from "@/types/types";
+import type { DataType, ReportAttribute } from "@/types/types";
 import { useState, type FormEvent, type JSX } from "react";
 import { Button } from "./ui/button";
 import {
@@ -113,16 +110,18 @@ export function DynamicForm({
           .sort((a, b) => a.orderIndex - b.orderIndex)
           .map((attr) => {
             switch (attr.dataType) {
-              case "panel": {
+              case "panel":
+                {
                   const panelChildren = attributes.filter(
                     (a) => a.panelId === attr.id,
                   );
                   console.log("panel children:", panelChildren);
-              }
+                }
                 break;
             }
 
-            const Comp = componentsByType[attr.dataType] ?? componentsByType.text; // fallback              
+            const Comp =
+              componentsByType[attr.dataType] ?? componentsByType.text; // fallback
 
             return (
               <div
@@ -153,7 +152,7 @@ export function DynamicForm({
         <Button
           variant="outline"
           className="rounded-lg hover:cursor-pointer md:w-fit w-full"
-          onClick={() => navigate('/dashboard/forms')}
+          onClick={() => navigate("/dashboard/forms")}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Volver
@@ -199,29 +198,33 @@ export const FormComponentSelect = ({
   attr: ReportAttribute;
   editable: boolean;
 }) => {
+  // console.log("Rendering Select for attr:", attr);
   return (
     <Field className="w-fit">
       <FieldLabel htmlFor={attr.name}>{attr.label}</FieldLabel>
       <Select
         name={attr.name}
         required={attr.isRequired || false}
-        defaultValue={attr.defaultValue as string}
+        defaultValue={
+          (attr.attributeValue as string) || (attr.defaultValue as string)
+        }
         disabled={!editable}
       >
         <SelectTrigger className="">
           <SelectValue placeholder={attr.defaultValue as string} />
         </SelectTrigger>
         <SelectContent>
-          {(attr.options ?? []).map((opt) =>
-            typeof opt === "string" ? (
-              <SelectItem key={opt} value={opt}>
-                {opt}
-              </SelectItem>
-            ) : (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ),
+          {(JSON.parse(attr.optionsJson ?? "[]") ?? []).map(
+            (opt: { value: string; label: string } | string) =>
+              typeof opt === "string" ? (
+                <SelectItem key={opt} value={opt}>
+                  {opt}
+                </SelectItem>
+              ) : (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ),
           )}
         </SelectContent>
       </Select>
@@ -230,7 +233,13 @@ export const FormComponentSelect = ({
   );
 };
 
-export const FormComponentDate = ({ attr, editable }: { attr: ReportAttribute; editable: boolean }) => {
+export const FormComponentDate = ({
+  attr,
+  editable,
+}: {
+  attr: ReportAttribute;
+  editable: boolean;
+}) => {
   const [date, setDate] = useState<Date>();
   return (
     <Field className="w-fit">
@@ -302,10 +311,16 @@ export const FormComponentTextArea = ({
   attr: ReportAttribute;
   editable: boolean;
 }) => {
+  // console.log("Rendering Select for attr:", attr);
   return (
     <Field className="w-fit">
       <FieldLabel htmlFor={attr.name}>{attr.label}</FieldLabel>
-      <Textarea id={attr.name} name={attr.name} placeholder={attr.label} disabled={!editable} />
+      <Textarea
+        id={attr.name}
+        name={attr.name}
+        placeholder={attr.label}
+        disabled={!editable}
+      />
       <FieldDescription>{attr.description || ""}</FieldDescription>
     </Field>
   );
@@ -341,29 +356,41 @@ export const FormComponentRadio = ({
   attr: ReportAttribute;
   editable: boolean;
 }) => {
+  // console.log("Rendering Select for attr:", attr);
   return (
     <FieldSet className="w-full">
       <FieldLegend variant="label">{attr.label}</FieldLegend>
-      <FieldDescription>
-        {attr.description || ""}
-      </FieldDescription>
-      <RadioGroup defaultValue="monthly" name={attr.name} className="mt-2 space-y-2" disabled={!editable}>
-        {(JSON.parse(attr.optionsJson ?? "[]") ?? []).map((opt: {value: string; label: string}) =>
-          typeof opt === "string" ? (
-            <Field orientation="horizontal" key={opt}>
-              <RadioGroupItem value={opt} id={`plan-${opt}`} />
-              <FieldLabel htmlFor={`plan-${opt}`} className="font-normal">
-                {opt}
-              </FieldLabel>
-            </Field>
-          ) : (
-            <Field orientation="horizontal" key={opt.value}>
-              <RadioGroupItem value={opt.value} id={`plan-${opt.value}`} defaultChecked={attr.defaultValue === opt.value} />
-              <FieldLabel htmlFor={`plan-${opt.value}`} className="font-normal">
-                {opt.label}
-              </FieldLabel>
-            </Field>
-          )
+      <FieldDescription>{attr.description || ""}</FieldDescription>
+      <RadioGroup
+        defaultValue={(attr.attributeValue as string) || (attr.defaultValue as string)}
+        name={attr.name}
+        className="mt-2 space-y-2"
+        disabled={!editable}
+      >
+        {(JSON.parse(attr.optionsJson ?? "[]") ?? []).map(
+          (opt: { value: string; label: string }) =>
+            typeof opt === "string" ? (
+              <Field orientation="horizontal" key={opt}>
+                <RadioGroupItem value={opt} id={`plan-${opt}`} />
+                <FieldLabel htmlFor={`plan-${opt}`} className="font-normal">
+                  {opt}
+                </FieldLabel>
+              </Field>
+            ) : (
+              <Field orientation="horizontal" key={opt.value}>
+                <RadioGroupItem
+                  value={opt.value}
+                  id={`plan-${opt.value}`}
+                  defaultChecked={(attr.attributeValue as string) === opt.value}
+                />
+                <FieldLabel
+                  htmlFor={`plan-${opt.value}`}
+                  className="font-normal"
+                >
+                  {opt.label}
+                </FieldLabel>
+              </Field>
+            ),
         )}
       </RadioGroup>
     </FieldSet>
@@ -371,15 +398,44 @@ export const FormComponentRadio = ({
 };
 
 // Mapeo de componentes por tipo de dato
-const componentsByType: Record<DataType, (attr: ReportAttribute, editable: boolean) => JSX.Element> = {
-  text: (attr: ReportAttribute, editable: boolean) => <FormComponentInput attr={attr} editable={editable} type="text" />,
-  number: (attr, editable) => <FormComponentInput attr={attr} editable={editable} type="number" />,
-  select: (attr, editable) => <FormComponentSelect attr={attr} editable={editable} />,
-  date: (attr, editable) => <FormComponentDate attr={attr} editable={editable} />,
-  checkbox: (attr, editable) => <FormComponentCheckbox attr={attr} editable={editable} />,
-  textarea: (attr, editable) => <FormComponentTextArea attr={attr} editable={editable} />,
-  radio: (attr, editable) => <FormComponentRadio attr={attr} editable={editable} />,
-  switch: (attr, editable) => <FormComponentSwitch attr={attr} editable={editable} />,
-  panel: (p, editable) => <div>Panel {p.name} component not implemented yet. and editable: {editable.toString()}</div>,
-  custom: (p, editable) => <div>Custom {p.name} component not implemented yet. and editable: {editable.toString()}</div>,
+const componentsByType: Record<
+  DataType,
+  (attr: ReportAttribute, editable: boolean) => JSX.Element
+> = {
+  text: (attr: ReportAttribute, editable: boolean) => (
+    <FormComponentInput attr={attr} editable={editable} type="text" />
+  ),
+  number: (attr, editable) => (
+    <FormComponentInput attr={attr} editable={editable} type="number" />
+  ),
+  select: (attr, editable) => (
+    <FormComponentSelect attr={attr} editable={editable} />
+  ),
+  date: (attr, editable) => (
+    <FormComponentDate attr={attr} editable={editable} />
+  ),
+  checkbox: (attr, editable) => (
+    <FormComponentCheckbox attr={attr} editable={editable} />
+  ),
+  textarea: (attr, editable) => (
+    <FormComponentTextArea attr={attr} editable={editable} />
+  ),
+  radio: (attr, editable) => (
+    <FormComponentRadio attr={attr} editable={editable} />
+  ),
+  switch: (attr, editable) => (
+    <FormComponentSwitch attr={attr} editable={editable} />
+  ),
+  panel: (p, editable) => (
+    <div>
+      Panel {p.name} component not implemented yet. and editable:{" "}
+      {editable.toString()}
+    </div>
+  ),
+  custom: (p, editable) => (
+    <div>
+      Custom {p.name} component not implemented yet. and editable:{" "}
+      {editable.toString()}
+    </div>
+  ),
 };

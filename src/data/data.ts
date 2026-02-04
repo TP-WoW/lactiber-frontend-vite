@@ -30,19 +30,19 @@ export const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: "Production",
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      plan: "Lactiber",
     },
     {
-      name: "Acme Corp.",
+      name: "Engineering",
       logo: AudioWaveform,
-      plan: "Startup",
+      plan: "Lactiber",
     },
     {
-      name: "Evil Corp.",
+      name: "QA",
       logo: Command,
-      plan: "Free",
+      plan: "Lactiber",
     },
   ],
   navMain: [
