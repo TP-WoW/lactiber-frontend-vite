@@ -9,7 +9,11 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import type { FormAttributeUpdateType } from "@/types/types";
+import type {
+  DataType,
+  FormAttributeUpdateType,
+  SampleConfigType,
+} from "@/types/types";
 import { Settings, Trash2Icon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
@@ -17,6 +21,19 @@ import { useState } from "react";
 import { Input } from "./ui/input";
 import { useFormEditor } from "@/hooks/use-formEditor";
 import { Textarea } from "./ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Field, FieldGroup, FieldLabel } from "./ui/field";
+import { Checkbox } from "./ui/checkbox";
+import { sampleDataset, sampleTags } from "@/data/dummy-data";
+import { sampleFrecuencies } from "@/data/data";
 
 export function FormAttributeDrawer({
   item,
@@ -54,6 +71,52 @@ export function FormAttributeDrawer({
       return [];
     })(),
   );
+
+  const [sampleConfigData, setSampleConfigData] =
+    useState<SampleConfigType | null>(
+      (() => {
+        if (curItem?.dataType === "sample") {
+          if (
+            typeof curItem?.sampleConfigJson === "string" &&
+            curItem.sampleConfigJson.trim() !== ""
+          ) {
+            try {
+              const parsed = JSON.parse(curItem.sampleConfigJson);
+              return parsed as SampleConfigType;
+            } catch {
+              return {
+                sampleFrecuency: 0,
+                manualMode: false,
+                selectedDataset: "",
+                selectedTag: "",
+                manualSample: {
+                  label: "",
+                  name: "",
+                  description: "",
+                  type: "text",
+                  defaultValue: "",
+                },
+              } as SampleConfigType; // Devuelve un objeto vacío si no se puede parsear
+            }
+          } else {
+            return {
+              sampleFrecuency: 0,
+              manualMode: false,
+              selectedDataset: "",
+              selectedTag: "",
+              manualSample: {
+                label: "",
+                name: "",
+                description: "",
+                type: "text",
+                defaultValue: "",
+              },
+            } as SampleConfigType; // Devuelve un objeto vacío si no hay configuración previa
+          }
+        }
+        return null; // Devuelve null si el tipo no es "sample"
+      })(),
+    );
 
   const handleAddOption = () => {
     console.log("Current Item in Drawer:", curItem);
@@ -94,15 +157,35 @@ export function FormAttributeDrawer({
     console.log("Saving changes for item:", curItem?.id);
     // Por ejemplo, podrías actualizar el estado global o hacer una llamada a una API
     console.log("Updated Options:", options);
+    // Transformamos el valor de manualSample.name para que sea un slug basado en el label
+    if (sampleConfigData?.manualSample) {
+      const slug = sampleConfigData.manualSample.label
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+        setSampleConfigData((prevConfig) =>
+        prevConfig
+          ? {
+              ...prevConfig,
+              manualSample: {
+                ...prevConfig.manualSample,
+                name: slug,
+              },
+            }
+          : prevConfig,
+      );
+    }
+    console.log("Updated Sample Config:", sampleConfigData);
+
     setNewSettings((prevSettings) => ({
       ...prevSettings,
       optionsJson: options,
+      sampleConfigJson: sampleConfigData ? JSON.stringify(sampleConfigData) : undefined,
     }));
     console.log("New Settings to Save:", newSettings);
     setItems((prevItems) =>
       prevItems.map((it) =>
         it.id === curItem?.id
-          ? { ...it, ...newSettings, options: options }
+          ? { ...it, ...newSettings, options: options, sampleConfigJson: sampleConfigData ? JSON.stringify(sampleConfigData) : undefined }
           : it,
       ),
     );
@@ -242,6 +325,12 @@ export function FormAttributeDrawer({
                   <Button onClick={handleAddOption}>Add Option</Button>
                 </div>
               )}
+              {curItem?.dataType === "sample" && sampleConfigData && (
+                <SampleConfigurationComponent
+                  sampleConfig={sampleConfigData}
+                  setSampleConfig={setSampleConfigData}
+                />
+              )}
             </div>
           </TabsContent>
         </Tabs>
@@ -301,6 +390,270 @@ const OptionsComponent = ({
       >
         <Trash2Icon />
       </Button>
+    </div>
+  );
+};
+
+const SampleConfigurationComponent = ({
+  sampleConfig,
+  setSampleConfig,
+}: {
+  sampleConfig?: SampleConfigType;
+  setSampleConfig?: React.Dispatch<
+    React.SetStateAction<SampleConfigType | null>
+  >;
+}) => {
+  return (
+    <div className="flex flex-col gap-5 w-full h-auto overflow-y-scroll">
+      <p className="text-xs">
+        Esta es la configuración específica para atributos de tipo "sample".
+        Selecciona la frecuencia del muestreo.
+      </p>
+
+      <Select
+        onValueChange={(e) => {
+          if (setSampleConfig && sampleConfig) {
+            setSampleConfig({
+              ...sampleConfig,
+              sampleFrecuency: Number(e),
+            });
+          }
+        }}
+      >
+        <SelectTrigger className="w-full max-w-48">
+          <SelectValue
+            placeholder="Frecuencia de muestreo"
+            defaultValue={sampleConfig?.sampleFrecuency?.toString()}
+          />
+        </SelectTrigger>
+        <SelectContent className="w-full max-w-48">
+          <SelectGroup>
+            <SelectLabel>Frecuencia de Muestreo</SelectLabel>
+            {sampleFrecuencies.map((frecuency) => (
+              <SelectItem key={frecuency.value} value={frecuency.value}>
+                {frecuency.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <p className="text-xs">
+        Selecciona el datasets y tags configurados, o configura una muestra
+        manual con sus propios parámetros.
+      </p>
+      <FieldGroup className="w-full">
+        <Field orientation="horizontal">
+          <Checkbox
+            id="manual-mode"
+            name="manual-mode"
+            defaultChecked={sampleConfig?.manualMode}
+            onCheckedChange={(e) => {
+              if (setSampleConfig && sampleConfig) {
+                setSampleConfig({
+                  ...sampleConfig,
+                  selectedDataset: sampleConfig.selectedDataset || "",
+                  selectedTag: sampleConfig.selectedTag || "",
+                  manualMode: e === false ? false : true,
+                });
+              }
+            }}
+          />
+          <FieldLabel htmlFor="manual-mode">Muestra manual</FieldLabel>
+        </Field>
+      </FieldGroup>
+      {!sampleConfig?.manualMode ? (
+        <>
+          <Select
+            onValueChange={(e) => {
+              if (setSampleConfig && sampleConfig) {
+                setSampleConfig({
+                  ...sampleConfig,
+                  selectedDataset: e,
+                });
+              }
+            }}
+          >
+            <SelectTrigger className="w-full max-w-48">
+              <SelectValue
+                placeholder="Dataset"
+                defaultValue={sampleConfig?.selectedDataset}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Datasets Configurados</SelectLabel>
+                {sampleDataset.map((dataset) => (
+                  <SelectItem key={dataset.value} value={dataset.value}>
+                    {dataset.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select
+            onValueChange={(e) => {
+              if (setSampleConfig && sampleConfig) {
+                setSampleConfig({
+                  ...sampleConfig,
+                  selectedTag: e,
+                });
+              }
+            }}
+          >
+            <SelectTrigger className="w-full max-w-48">
+              <SelectValue
+                placeholder="Select Tag"
+                defaultValue={sampleConfig?.selectedTag}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Tags Configurados</SelectLabel>
+                {sampleTags.map((tag) => (
+                  <SelectItem key={tag.value} value={tag.value}>
+                    {tag.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </>
+      ) : (
+        <>
+          <Select
+            value={sampleConfig?.manualSample?.type}
+            onValueChange={(value: DataType) => {
+              if (setSampleConfig) {
+                setSampleConfig({
+                  ...sampleConfig,
+                  manualSample: { ...sampleConfig.manualSample, type: value },
+                });
+              }
+            }}
+          >
+            <SelectTrigger className="w-full max-w-48">
+              <SelectValue placeholder="Tipo de dato" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Tipo de dato</SelectLabel>
+                <SelectItem value="text">Texto</SelectItem>
+                <SelectItem value="number">Número</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Input
+            name="label"
+            className="w-full rounded-lg px-2 py-1"
+            placeholder="Label Name"
+            defaultValue={sampleConfig?.manualSample?.label}
+            onChange={(e) => {
+              if (setSampleConfig) {
+                setSampleConfig({
+                  ...sampleConfig,
+                  manualSample: {
+                    ...sampleConfig.manualSample,
+                    label: e.target.value,
+                  },
+                });
+              }
+            }}
+            required={sampleConfig?.manualMode ? false : true}
+          />
+          <Input
+            name="description"
+            className="w-full rounded-lg px-2 py-1"
+            placeholder="Description"
+            defaultValue={sampleConfig?.manualSample?.description}
+            onChange={(e) => {
+              if (setSampleConfig) {
+                setSampleConfig({
+                  ...sampleConfig,
+                  manualSample: {
+                    ...sampleConfig.manualSample,
+                    description: e.target.value,
+                  },
+                });
+              }
+            }}
+          />
+          <Input
+            name="defaultValue"
+            className="w-full rounded-lg px-2 py-1"
+            placeholder="Valor por defecto"
+            defaultValue={sampleConfig?.manualSample?.defaultValue}
+            onChange={(e) => {
+              if (setSampleConfig) {
+                setSampleConfig({
+                  ...sampleConfig,
+                  manualSample: {
+                    ...sampleConfig.manualSample,
+                    defaultValue: e.target.value,
+                  },
+                });
+              }
+            }}
+          />
+          {sampleConfig?.manualSample?.type === "number" && (
+            <div className="flex gap-4">
+              <Input
+                type="number"
+                name="min"
+                className="w-full rounded-lg px-2 py-1"
+                placeholder="Min"
+                defaultValue={sampleConfig?.manualSample?.min}
+                onChange={(e) => {
+                  if (setSampleConfig) {
+                    setSampleConfig({
+                      ...sampleConfig,
+                      manualSample: {
+                        ...sampleConfig.manualSample,
+                        min: Number(e.target.value),
+                      },
+                    });
+                  }
+                }}
+              />
+              <Input
+                type="number"
+                name="max"
+                className="w-full rounded-lg px-2 py-1"
+                placeholder="Max"
+                defaultValue={sampleConfig?.manualSample?.max}
+                onChange={(e) => {
+                  if (setSampleConfig) {
+                    setSampleConfig({
+                      ...sampleConfig,
+                      manualSample: {
+                        ...sampleConfig.manualSample,
+                        max: Number(e.target.value),
+                      },
+                    });
+                  }
+                }}
+              />
+              <Input
+                type="text"
+                name="engUnits"
+                className="w-full rounded-lg px-2 py-1"
+                placeholder="Unidad"
+                defaultValue={sampleConfig?.manualSample?.engUnits}
+                onChange={(e) => {
+                  if (setSampleConfig) {
+                    setSampleConfig({
+                      ...sampleConfig,
+                      manualSample: {
+                        ...sampleConfig.manualSample,
+                        engUnits: e.target.value,
+                      },
+                    });
+                  }
+                }}
+              />
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

@@ -15,11 +15,23 @@ import { Save, type LucideProps } from "lucide-react";
 import { toast } from "sonner";
 import { useFormEditor } from "@/hooks/use-formEditor";
 import { FormEditorProvider } from "@/contexts/form-editor-context";
+import { useUser } from "@/hooks/use-user";
+
+const FormEditor = () => {
+  const params = new URLSearchParams(window.location.search);
+  const formId = params.get("id") || "";
+  return (
+    <FormEditorProvider formId={formId}>
+      <FormEditorInner />
+    </FormEditorProvider>
+  );
+};
 
 const FormEditorInner = () => {
 
   const { items, setItems } = useFormEditor();
   const [formInfo, setFormInfo] = useState<FormInfo | null>(null);
+  const { user } = useUser();
 
   const getFormInfo = async (id: string) => {
     try {
@@ -64,6 +76,7 @@ const FormEditorInner = () => {
       defaultValue: "",
       description: "",
       options: [],
+      sampleConfigJson: undefined,
     };
     setItems((prevItems) => [...prevItems, newItem]);
   };
@@ -73,6 +86,7 @@ const FormEditorInner = () => {
       ...item,
       orderIndex: idx + 1,
       optionsJson: JSON.stringify(item.options),
+      createdBy: user?.userName, 
     }));
     setItems(itemsWithOrderIndex);
     console.log("Saving items:", itemsWithOrderIndex);
@@ -154,18 +168,6 @@ const FormEditorInner = () => {
   );
 };
 
-const FormEditor = () => {
-  const params = new URLSearchParams(window.location.search);
-  const formId = params.get("id") || "";
-  return (
-    <FormEditorProvider formId={formId}>
-      <FormEditorInner />
-    </FormEditorProvider>
-  );
-};
-
-export default memo(FormEditor);
-
 export const ComponentToolsBar = ({
   handleAddNewItem,
 }: {
@@ -192,3 +194,6 @@ export const ComponentToolsBar = ({
     </>
   );
 };
+
+export default memo(FormEditor);
+

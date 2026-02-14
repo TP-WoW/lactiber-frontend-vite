@@ -18,6 +18,7 @@ import {
   CircleCheck,
   Circle,
   ChevronDownCircle,
+  CalendarClock,
 } from "lucide-react";
 import type { ForwardRefExoticComponent } from "react";
 
@@ -177,4 +178,21 @@ export const toolItems: {
     icon: UserRoundPen,
     tooltip: "Custom Input",
   },
+  {
+    type: "sample",
+    icon: CalendarClock,
+    tooltip: "Sample Input",
+  },
+];
+
+export const sampleFrecuencies = [
+  { label: "1 minuto", value: "60" },
+  { label: "5 minutos", value: "300" },
+  { label: "10 minutos", value: "600" },
+  { label: "30 minutos", value: "1800" },
+  { label: "1 hora", value: "3600" },
+  { label: "2 horas", value: "7200" },
+  { label: "6 horas", value: "21600" },
+  { label: "12 horas", value: "43200" },
+  { label: "24 horas", value: "86400" },
 ];

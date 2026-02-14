@@ -1,9 +1,31 @@
 import type { JSX } from "react";
-import { z } from "zod"
-
+import { z } from "zod";
 
 // Tipos de dato que esperas desde BD
-export type DataType = "text" | "number" | "select" | "date" | "checkbox" | "textarea" | "radio" | "switch" | "panel" | "custom";
+export type DataType =
+  | "text"
+  | "number"
+  | "select"
+  | "date"
+  | "checkbox"
+  | "textarea"
+  | "radio"
+  | "switch"
+  | "panel"
+  | "custom"
+  | "sample"; // Agrega más tipos según tus necesidades
+
+export const EngUnitsEnum = {
+  degCelsius: "ºC",
+  bar: "bar",
+  L: "L",
+  kg: "kg",
+  percent: "%",
+  pantalla: "pantalla",
+  litersPerHour: "l/h",
+} as const;
+
+export type EngUnitsEnum = (typeof EngUnitsEnum)[keyof typeof EngUnitsEnum];
 
 // Fila “hidratada” desde la BD
 export type DbAttribute = {
@@ -21,7 +43,8 @@ export type DbAttribute = {
   isRequired: boolean;
   defaultValue?: string | number | null;
   orderIndex: number;
-  options?: Array<{ value: string; label: string }> | string[]; // según definas
+  options?: Array<{ value: string; label: string }> | string[];
+  sampleConfigJson?: string; // JSON string from DB
 };
 
 /*
@@ -37,19 +60,39 @@ export type ReportAttribute = DbAttribute & {
   reportCreatedAt?: string;
   reportStartedAt?: string;
   reportLastUpdateAt?: string;
-  reportAssignedTo?: string;  
+  reportAssignedTo?: string;
   optionsJson?: string; // JSON string from DB
+  sampleConfigJson?: string; // JSON string from DB
   attributeValue?: string | number | boolean | null; // Valor específico para este reporte
-}
+};
 
-export type FormAttributeInsertType = Omit<DbAttribute, 'options'> & {
+export type SampleConfigType = {
+  sampleFrecuency: number;
+  manualMode: boolean;
+  selectedDataset: string;
+  selectedTag: string;
+  manualSample: {
+    label: string;
+    name: string;
+    description?: string;
+    type: DataType;
+    defaultValue: string;
+    engUnits?: string;
+    min?: number;
+    max?: number;
+  };
+};
+
+export type FormAttributeInsertType = Omit<DbAttribute, "options"> & {
   createdBy?: string;
   optionsJson?: Array<{ value: string; label: string }> | string[];
-}
+  sampleConfigJson?: string; // JSON string from DB
+};
 
-export type FormAttributeUpdateType = Omit<DbAttribute, 'options'> & {
+export type FormAttributeUpdateType = Omit<DbAttribute, "options"> & {
   optionsJson?: Array<{ value: string; label: string }> | string[];
-}
+  sampleConfigJson?: string; // JSON string from DB
+};
 
 // Un FormComponent genérico
 export type FormComponentProps = {
@@ -86,7 +129,7 @@ export const FormStatus = {
   PUBLISHED: "published",
 } as const;
 
-export type FormStatus = typeof FormStatus[keyof typeof FormStatus];
+export type FormStatus = (typeof FormStatus)[keyof typeof FormStatus];
 
 export const ReportStatus = {
   NEW: "new",
@@ -96,7 +139,7 @@ export const ReportStatus = {
   COMPLETE: "complete",
 } as const;
 
-export type ReportStatus = typeof ReportStatus[keyof typeof ReportStatus];
+export type ReportStatus = (typeof ReportStatus)[keyof typeof ReportStatus];
 
 export type FormReport = {
   id: string;
@@ -114,7 +157,7 @@ export type FormReport = {
   parameters?: ReportParameter[];
   assignedTo?: string;
   reviewer?: string;
-}
+};
 
 export type ReportParameter = {
   id: string;
@@ -124,19 +167,19 @@ export type ReportParameter = {
   updatedAt?: string;
   updatedBy?: string;
   options?: Array<{ value: string; label: string }>;
-}
-  export type TransformedReport = {
-    id: number;
-    reportId: string;    
-    name: string;
-    description?: string;
-    form: string;
-    formId?: string;
-    status: string;
-    assignedTo: string;
-    reviewer: string;
-    createdAt?: string;
-  };
+};
+export type TransformedReport = {
+  id: number;
+  reportId: string;
+  name: string;
+  description?: string;
+  form: string;
+  formId?: string;
+  status: string;
+  assignedTo: string;
+  reviewer: string;
+  createdAt?: string;
+};
 
 export const formReportTableSchema = z.object({
   id: z.number(),
@@ -146,7 +189,7 @@ export const formReportTableSchema = z.object({
   target: z.string(),
   limit: z.string(),
   reviewer: z.string(),
-})
+});
 
 export type User = {
   id: string;
@@ -160,10 +203,9 @@ export type User = {
   permissionsJson?: string;
   avatar?: string | "/avatars/shadcn.jpg";
   // Agrega más campos según tu modelo de usuario
-}
+};
 
 export type LoginResponse = User & {
   statusCode: number;
-  message: string; 
-}
-
+  message: string;
+};
