@@ -6,6 +6,7 @@ import { FormAttributeDrawer } from "../FormAttributeDrawer";
 import { toolItems } from "@/data/data";
 import { useFormEditor } from "@/hooks/use-formEditor";
 import { Separator } from "@radix-ui/react-separator";
+import { SaveCustomComponentDiaglog } from "../custom-dialogs";
 
 export const DndComponent = ({ item }: { item: DbAttribute }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -52,6 +53,7 @@ export const DndComponent = ({ item }: { item: DbAttribute }) => {
       />
       {/* El botón del Drawer NO debe tener listeners de drag */}
       <FormAttributeDrawer item={item} />
+      <SaveCustomComponentDiaglog id={item.id} />
     </div>
   );
 };
@@ -65,9 +67,7 @@ export const PanelComponentDesigner = ({ item }: { item: DbAttribute }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `${item.id}`,
     data: { type: "panel", panelId: item.id },
-  });
-
-  
+  });  
 
   return (
     <div

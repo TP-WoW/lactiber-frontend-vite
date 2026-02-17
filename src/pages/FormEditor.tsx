@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useFormEditor } from "@/hooks/use-formEditor";
 import { FormEditorProvider } from "@/contexts/form-editor-context";
 import { useUser } from "@/hooks/use-user";
+import { AddCustomComponentDialog } from "@/components/custom-dialogs";
 
 const FormEditor = () => {
   const params = new URLSearchParams(window.location.search);
@@ -62,7 +63,27 @@ const FormEditorInner = () => {
 
  
 
-  const handleAddNewItem = (item: DataType) => {
+  const handleAddNewItem = async (item: DataType, customComponentName?: string) => {
+    if (item === "custom") {
+      // Handle custom component addition
+      console.log("Adding custom component:", customComponentName);
+      if (customComponentName) {
+        // You can create a new DbAttribute for the custom component and add it to the items list
+        try {          
+          const result = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/form-attributes/get-custom/${customComponentName}`);
+          if (!result.ok) {
+            throw new Error("Failed to fetch custom component data");
+          }
+          const data = await result.json();
+          console.log("Custom component data:", JSON.parse(data[0].json));
+        } catch (error) {
+          console.error("Error fetching custom component data:", error);
+        }
+      return;
+      }
+    }
+
+    // Handle regular item addition
     const newId = uuidv4();
     const newItem: DbAttribute = {
       id: newId,
@@ -191,6 +212,7 @@ export const ComponentToolsBar = ({
           </Tooltip>
         ),
       )}
+      <AddCustomComponentDialog handleAddNewItem={handleAddNewItem} />
     </>
   );
 };

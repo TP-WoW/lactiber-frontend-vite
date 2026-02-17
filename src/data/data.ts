@@ -11,7 +11,6 @@ import {
   CalendarDays,
   DecimalsArrowRight,
   type LucideProps,
-  UserRoundPen,
   Grid2X2,
   ToggleRight,
   CaseSensitive,
@@ -172,11 +171,6 @@ export const toolItems: {
     type: "panel",
     icon: Grid2X2,
     tooltip: "Panel Input",
-  },
-  {
-    type: "custom",
-    icon: UserRoundPen,
-    tooltip: "Custom Input",
   },
   {
     type: "sample",

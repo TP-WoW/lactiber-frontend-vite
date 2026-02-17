@@ -22,13 +22,6 @@ const DndContainer = ({
 
     console.log("Over data:", over.id);
 
-    // identify the type of droppable region (regular item vs panel droppable area)
-    // const overData = items.find((it) => it.id === (over.id as string));
-
-    // if (overData?.dataType === "panel") {
-    //   console.log(`Dropped over panel ${overData.id}`);
-    // }
-
     setItems((currentItems) => {
       const activeId = active.id as string;
       const overId = over.id as string;
