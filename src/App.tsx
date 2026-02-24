@@ -26,6 +26,7 @@ import Workflows from "./pages/Workflows";
 import Lookups from "./pages/Lookups";
 import { CustomForm } from "./pages/Form";
 import FormEditor from "./pages/FormEditor";
+import Documentation from "./pages/Documentation";
 
 function App() {
   const url = useLocation()?.pathname;
@@ -88,6 +89,7 @@ function App() {
             <Route path="/designer/workflows" element={<Workflows />} />
             <Route path="/designer/lookups" element={<Lookups />} />
             <Route path="/designer/database" element={<Database />} />
+            <Route path="/docs" element={<Documentation />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </SidebarInset>

@@ -91,24 +91,24 @@ export const data = {
     },
     {
       title: "documentation",
-      url: "#",
+      url: "/docs",
       icon: BookOpen,
       items: [
         {
-          title: "introduction",
-          url: "#",
+          title: "arquitectura",
+          url: "/docs",
         },
         {
           title: "getStarted",
-          url: "#",
+          url: "/docs/get-started",
         },
         {
           title: "tutorials",
-          url: "#",
+          url: "/docs/tutorials",
         },
         {
           title: "changelog",
-          url: "#",
+          url: "/docs/changelog",
         },
       ],
     },

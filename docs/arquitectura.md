@@ -61,3 +61,83 @@ Notas y próximos pasos sugeridos:
 - Añadir diagramas (Mermaid) para visualizar dependencias si se desea.
 
 Archivo generado automáticamente por la documentación inicial.
+
+**Diagrama de relaciones (Mermaid)**
+
+```mermaid
+graph LR
+  %% Páginas
+  Home(Home)
+  Dashboard(Dashboard)
+  Forms(Forms)
+  Form(Form)
+  FormDesigner(FormDesigner)
+  FormEditor(FormEditor)
+  CreateForm(CreateForm)
+  Database(Database)
+  Lookups(Lookups)
+  Notifications(Notifications)
+  Settings(Settings)
+  Workflows(Workflows)
+
+  %% Componentes
+  AppSidebar(AppSidebar)
+  DynamicForm(DynamicForm)
+  DataTable(DataTable)
+  DndContainer(DndContainer)
+  CustomDialogs(CustomDialogs)
+  FormAttributeDrawer(FormAttributeDrawer)
+  Card(Card)
+  Badge(Badge)
+  DraggableKPI(DraggableKPI)
+  UI(UI components)
+
+  %% Relaciones principales
+  Home --> AppSidebar
+  Dashboard --> Card
+  Dashboard --> DraggableKPI
+  Forms --> DataTable
+  Forms --> CustomDialogs
+  Form --> DynamicForm
+  Form --> Badge
+  FormDesigner --> DataTable
+  FormDesigner --> UI
+  FormEditor --> DndContainer
+  FormEditor --> CustomDialogs
+  FormEditor --> FormAttributeDrawer
+  CreateForm --> DynamicForm
+  Database --> DataTable
+  Lookups --> UI
+  Notifications --> UI
+  Settings --> UI
+  Workflows --> UI
+
+  %% Agrupaciones visuales
+  subgraph Pages[Pages]
+    Home
+    Dashboard
+    Forms
+    Form
+    FormDesigner
+    FormEditor
+    CreateForm
+    Database
+    Lookups
+    Notifications
+    Settings
+    Workflows
+  end
+
+  subgraph Components[Components]
+    AppSidebar
+    DynamicForm
+    DataTable
+    DndContainer
+    CustomDialogs
+    FormAttributeDrawer
+    Card
+    Badge
+    DraggableKPI
+    UI
+  end
+```
