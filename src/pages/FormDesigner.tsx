@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "react-i18next";
 
 const columns: ColumnDef<FormInfo>[] = [
   {
@@ -38,6 +39,7 @@ const columns: ColumnDef<FormInfo>[] = [
 ];
 
 export default function FormDesigner() {
+  const { t } = useTranslation("common"); // Asegúrate de tener la función de traducción disponible
   const [forms, setForms] = useState<FormInfo[]>([]);
 
   const fetchForms = async () => {
@@ -65,7 +67,7 @@ export default function FormDesigner() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Formularios</h1>
+        <h1 className="text-2xl font-bold">{t("forms")}</h1>
         <AddNewFormDialog updateFormList={updateFormList} />
       </div>
       {forms && <DataTable columns={columns} data={forms} />}
@@ -74,6 +76,7 @@ export default function FormDesigner() {
 }
 
 export function AddNewFormDialog({ updateFormList }: { updateFormList: () => Promise<void> }) {
+  const {t} = useTranslation("common"); // Asegúrate de tener la función de traducción disponible
   const [formName, setFormName] = useState("");
   const handleCreateForm = async () => {
     try {
@@ -82,7 +85,7 @@ export function AddNewFormDialog({ updateFormList }: { updateFormList: () => Pro
       const newForm: FormInfo = {
         id: crypto.randomUUID(),
         title: formName,
-        description: "Descripción del nuevo formulario",
+        description: t("newFormDescription"),
         createdAt: new Date().toISOString(),
         createdBy: "currentUser", // Reemplazar con el usuario actual
         status: "draft",
@@ -113,34 +116,35 @@ export function AddNewFormDialog({ updateFormList }: { updateFormList: () => Pro
     <Dialog>
       <DialogTrigger asChild>
         <Button className="rounded-md hover:cursor-pointer">
-          <Edit2Icon /> Crear nuevo formulario
+          <Edit2Icon /> {t("newForm")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Crear nuevo formulario</DialogTitle>
+          <DialogTitle>{t("newForm")}</DialogTitle>
           <DialogDescription>
-            Ingresa el nombre del nuevo formulario.
+            {t("fillFieldsToCreateNewForm")}
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-2">
           <div className="grid flex-1 gap-2">
             <Label htmlFor="formName" className="sr-only">
-              Link
+              {t("formName")}
             </Label>
             <Input
               id="formName"
-              placeholder="Form Name"
+              placeholder={t("formName")}
               onChange={(e) => setFormName(e.target.value)}
             />
           </div>
         </div>
         <DialogFooter className="sm:justify-start">
           <DialogClose asChild>
-            <Button type="button">Close</Button>
+            <Button type="button">{t("cancel")}</Button>
           </DialogClose>
           <Button type="button" onClick={handleCreateForm}>
-            <PlusCircleIcon /> Add New
+            <PlusCircleIcon /> {t("addNew")}
+
           </Button>
         </DialogFooter>
       </DialogContent>

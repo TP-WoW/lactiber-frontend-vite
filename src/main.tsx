@@ -6,6 +6,7 @@ import App from "./App.tsx";
 import { ThemeProvider } from "./components/theme-provider.tsx";
 import { Toaster } from "./components/ui/sonner.tsx";
 import { UserProvider } from "@/contexts/user-context-provider.tsx";
+import "./i18n";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

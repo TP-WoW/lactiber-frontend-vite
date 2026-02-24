@@ -26,6 +26,7 @@ import { Textarea } from "./ui/textarea";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { keysToCamelCase } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export function AddNewFormInstance({ forms }: { forms: FormInfo[] }) {
   console.log("Forms in Dialog:", forms);
@@ -159,7 +160,8 @@ export function AddNewFormInstance({ forms }: { forms: FormInfo[] }) {
   );
 }
 
-export function SaveCustomComponentDiaglog({ id }: { id: string }) {
+export function SaveCustomComponentDiaglog({ id, open, onOpenChange }: { id: string; open?: boolean; onOpenChange?: (open: boolean) => void }) {
+  const {t} = useTranslation("common");
   const [componentName, setComponentName] = useState<string | null>(null);
   const handleSaveCustomComponent = async () => {
     // Aquí va la lógica para guardar el nuevo componente personalizado
@@ -180,53 +182,54 @@ export function SaveCustomComponentDiaglog({ id }: { id: string }) {
         },
       );
       if (!result.ok) {
-        throw new Error("Error saving custom component");
+        throw new Error(t("errorSavingCustomComponent"));
       }
       toast.success(
-        `Componente personalizado "${componentName}" guardado exitosamente.`,
+        `${t("customizedComponent")} "${componentName}" ${t("savedSuccessfully")}.`,
       );
       setComponentName(null); // Reset form after successful save
     } catch (error) {
-      toast.error("Hubo un error al guardar el componente personalizado.");
+      toast.error(t("errorSavingCustomComponent"));
       console.error("Error saving custom component:", error);
     }
   };
   return (
-    <Dialog>
-      <form>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <form className="w-fit">
         <DialogTrigger asChild>
-          <Button className="m-4 hover:cursor-pointer">
+          <Button variant={"outline"} className="hover:cursor-pointer flex flex-row items-center justify-between w-fit">
+            {/* {t("save")}  */}
             <Save />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
-            <DialogTitle>Guardar Componente Personalizado</DialogTitle>
+            <DialogTitle>{t("saveCustomComponent")}</DialogTitle>
             <DialogDescription>
-              Rellena los siguientes campos para guardar un nuevo componente
-              personalizado.
+              {t("fillFieldsToSaveCustomComponent")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid gap-3">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t("name")}</Label>
               <Input
                 id="name"
                 name="name"
                 defaultValue={componentName || ""}
                 onChange={(e) => setComponentName(e.target.value)}
+                autoFocus
               />
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{t("cancel")}</Button>
             </DialogClose>
             <Button
               onClick={handleSaveCustomComponent}
               disabled={!componentName}
             >
-              Guardar Componente
+              {t("saveComponent")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -255,12 +258,12 @@ export function AddCustomComponentDialog({ handleAddNewItem }: { handleAddNewIte
         `${import.meta.env.VITE_API_BASE_URL}/api/form-attributes/getAllCustom`,
       );
       if (!response.ok) {
-        throw new Error("Error fetching custom components");
+        throw new Error(t("errorFetchingCustomComponents"));
       }
       const data = await response.json();
       setCustomComponents(data);
     } catch (error) {
-      console.error("Error fetching custom components:", error);
+      console.error(t("errorFetchingCustomComponents"), error);
     }
   };
 
@@ -276,29 +279,31 @@ export function AddCustomComponentDialog({ handleAddNewItem }: { handleAddNewIte
     fetchCustomComponents();
   }, []);
 
+  const {t} = useTranslation("common"); // Asegúrate de tener la función de traducción disponible
+
   return (
     <Dialog>
       <form>
         <DialogTrigger asChild>
-          <Button className="m-4 hover:cursor-pointer">
+          <Button className="hover:cursor-pointer">
             <UserRoundPen />            
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
-            <DialogTitle>Nuevo Informe</DialogTitle>
+            <DialogTitle>{t("newCustomComponent")}</DialogTitle>
             <DialogDescription>
-              Rellena los siguientes campos para crear un nuevo informe.
+              {t("fillFieldsToCreateCustomComponent")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <Select onValueChange={(e) => setSelectedCustomComponent(e)}>
               <SelectTrigger className="w-full max-w-48">
-                <SelectValue placeholder="Tipo de informe" />
+                <SelectValue placeholder={t("selectComponent")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Tipo de informe</SelectLabel>
+                  <SelectLabel>{t("selectComponent")}</SelectLabel>
                   {customComponents?.map((comp) => (
                     <SelectItem key={comp.id} value={comp.componentName}>
                       {comp.componentName}
@@ -310,13 +315,13 @@ export function AddCustomComponentDialog({ handleAddNewItem }: { handleAddNewIte
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{t("cancel")}</Button>
             </DialogClose>
             <Button
               onClick={handleAddCustomComponent}
               disabled={!selectedCustomComponent}
             >
-              Añadir Componente Personalizado
+              {t("addCustomComponent")}
             </Button>
           </DialogFooter>
         </DialogContent>

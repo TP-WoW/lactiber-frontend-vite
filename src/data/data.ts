@@ -47,67 +47,67 @@ export const data = {
   ],
   navMain: [
     {
-      title: "Dashboard",
+      title: "dashboard",
       url: "/dashboard",
       icon: ChartAreaIcon,
       isActive: true,
       items: [
         {
-          title: "Home",
+          title: "home",
           url: "/dashboard",
         },
         {
-          title: "Forms",
+          title: "forms",
           url: "/dashboard/forms",
         },
         {
-          title: "Notifications",
+          title: "notifications",
           url: "/dashboard/notifications",
         },
       ],
     },
     {
-      title: "Designer",
+      title: "designer",
       url: "#",
       icon: Frame,
       items: [
         {
-          title: "Forms",
+          title: "forms",
           url: "/designer/forms",
         },
         {
-          title: "Workflows",
+          title: "workflows",
           url: "/designer/workflows",
         },
         {
-          title: "Lookups",
+          title: "lookups",
           url: "/designer/lookups",
         },
         {
-          title: "Database",
+          title: "database",
           url: "/designer/database",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "documentation",
       url: "#",
       icon: BookOpen,
       items: [
         {
-          title: "Introduction",
+          title: "introduction",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "getStarted",
           url: "#",
         },
         {
-          title: "Tutorials",
+          title: "tutorials",
           url: "#",
         },
         {
-          title: "Changelog",
+          title: "changelog",
           url: "#",
         },
       ],
@@ -130,52 +130,52 @@ export const toolItems: {
   {
     type: "text",
     icon: TextCursorInput,
-    tooltip: "Text Input",
+    tooltip: "textInput",
   },
   {
     type: "number",
     icon: DecimalsArrowRight,
-    tooltip: "Number Input",
+    tooltip: "numberInput",
   },
   {
     type: "date",
     icon: CalendarDays,
-    tooltip: "Date Input",
+    tooltip: "dateInput",
   },
   {
     type: "select",
     icon: ChevronDownCircle,
-    tooltip: "Select Input",
+    tooltip: "selectInput",
   },
   {
     type: "radio",
     icon: Circle,
-    tooltip: "Radio Input",
+    tooltip: "radioInput",
   },
   {
     type: "checkbox",
     icon: CircleCheck,
-    tooltip: "Checkbox Input",
+    tooltip: "checkboxInput",
   },
   {
     type: "textarea",
     icon: CaseSensitive,
-    tooltip: "Textarea Input",
+    tooltip: "textareaInput",
   },
   {
     type: "switch",
     icon: ToggleRight,
-    tooltip: "Switch Input",
+    tooltip: "switchInput",
   },
   {
     type: "panel",
     icon: Grid2X2,
-    tooltip: "Panel Input",
+    tooltip: "panelInput",
   },
   {
     type: "sample",
     icon: CalendarClock,
-    tooltip: "Sample Input",
+    tooltip: "sampleInput",
   },
 ];
 

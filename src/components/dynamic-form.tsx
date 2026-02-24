@@ -28,6 +28,13 @@ import { Textarea } from "./ui/textarea";
 import { Switch } from "./ui/switch";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { useNavigate } from "react-router-dom";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "./ui/accordion";
+import { t } from "i18next";
 
 // Render dinámico desde BD
 export function DynamicForm({
@@ -108,6 +115,7 @@ export function DynamicForm({
         {/* Renderizado dinámico de campos */}
         {attributes
           .sort((a, b) => a.orderIndex - b.orderIndex)
+          .filter((a) => !a.panelId)
           .map((attr) => {
             switch (attr.dataType) {
               case "panel":
@@ -116,6 +124,18 @@ export function DynamicForm({
                     (a) => a.panelId === attr.id,
                   );
                   console.log("panel children:", panelChildren);
+                  return (
+                    <div
+                      key={attr.name}
+                      className="bg-muted/50 aspect-auto p-4 rounded-lg col-span-full h-auto"
+                    >
+                      <FormComponentPanel
+                        attr={attr}
+                        children={panelChildren}
+                        editable={editable}
+                      />
+                    </div>
+                  );
                 }
                 break;
             }
@@ -140,14 +160,14 @@ export function DynamicForm({
           className="rounded-lg hover:cursor-pointer md:w-fit w-full"
         >
           <SendIcon className="mr-2 h-4 w-4" />
-          Submit
+          {t("submit")}
         </Button>
         <Button
           variant="outline"
           className="rounded-lg hover:cursor-pointer md:w-fit w-full"
         >
           <SaveIcon className="mr-2 h-4 w-4" />
-          Save
+          {t("save")}
         </Button>
         <Button
           variant="outline"
@@ -155,7 +175,7 @@ export function DynamicForm({
           onClick={() => navigate("/dashboard/forms")}
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Volver
+          {t("back")}
         </Button>
       </div>
     </form>
@@ -200,7 +220,7 @@ export const FormComponentSelect = ({
 }) => {
   // console.log("Rendering Select for attr:", attr);
   return (
-    <Field className="w-fit">
+    <Field className="w-fit min-w-9">
       <FieldLabel htmlFor={attr.name}>{attr.label}</FieldLabel>
       <Select
         name={attr.name}
@@ -362,7 +382,9 @@ export const FormComponentRadio = ({
       <FieldLegend variant="label">{attr.label}</FieldLegend>
       <FieldDescription>{attr.description || ""}</FieldDescription>
       <RadioGroup
-        defaultValue={(attr.attributeValue as string) || (attr.defaultValue as string)}
+        defaultValue={
+          (attr.attributeValue as string) || (attr.defaultValue as string)
+        }
         name={attr.name}
         className="mt-2 space-y-2"
         disabled={!editable}
@@ -394,6 +416,48 @@ export const FormComponentRadio = ({
         )}
       </RadioGroup>
     </FieldSet>
+  );
+};
+
+export const FormComponentPanel = ({
+  attr,
+  children,
+  editable,
+}: {
+  attr: ReportAttribute;
+  children: ReportAttribute[];
+  editable: boolean;
+}) => {
+  return (
+    <div>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="item-1">
+          <AccordionTrigger className="w-full py-2 text-left">
+            <header>
+              {attr.label} |{" "}
+              <span className="text-xs italic">{attr.description}</span>
+            </header>
+          </AccordionTrigger>
+          <AccordionContent className="w-full">
+            <div className="flex flex-wrap gap-2">
+              {children.map((child) => {
+                const Comp =
+                  componentsByType[child.dataType] ?? componentsByType.text; // fallback
+
+                return (
+                  <div
+                    key={child.name}
+                    className="bg-muted/50 aspect-auto p-4 rounded-lg min-w-60 flex-none"
+                  >
+                    {Comp(child, editable)}
+                  </div>
+                );
+              })}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
   );
 };
 
@@ -429,6 +493,12 @@ const componentsByType: Record<
   panel: (p, editable) => (
     <div>
       Panel {p.name} component not implemented yet. and editable:{" "}
+      {editable.toString()}
+    </div>
+  ),
+  sample: (p, editable) => (
+    <div>
+      Sample {p.name} component not implemented yet. and editable:{" "}
       {editable.toString()}
     </div>
   ),

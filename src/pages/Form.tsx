@@ -3,12 +3,14 @@ import { DynamicForm } from "@/components/dynamic-form";
 import { Badge } from "@/components/ui/badge";
 import { cn, keysToCamelCase } from "@/lib/utils";
 import { ReportStatus, type ReportAttribute } from "@/types/types";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 export const CustomForm = () => {
   const url = useLocation();
+  const {t} = useTranslation();
   const params = new URLSearchParams(url.search);
   // Mostrar todos los parámetros y la URL en consola
   console.log("params:", Object.fromEntries(params.entries()));
@@ -95,19 +97,19 @@ export const CustomForm = () => {
             <div className="bg-muted/50 sm:aspect-auto aspect-auto rounded-xl">
               <div className="flex flex-col items-start justify-center w-full h-auto p-2 gap-1 text-sm">
                 <div className="flex items-center gap-1">
-                  <p className="font-semibold">Creado por:</p>
+                  <p className="font-semibold">{t("createdBy")}:</p>
                   <span className="italic">
-                    {reportParams[0]?.reportCreatedBy || "Desconocido"}
+                    {reportParams[0]?.reportCreatedBy || t("unknown")}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <p className="font-semibold">Asignado a:</p>
+                  <p className="font-semibold">{t("assignedTo")}:</p>
                   <span className="italic">
-                    {reportParams[0]?.reportAssignedTo || "Desconocido"}
+                    {reportParams[0]?.reportAssignedTo || t("unknown")}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <p className="font-semibold">Ultima actualización a:</p>
+                  <p className="font-semibold">{t("lastUpdatedAt")}:</p>
                   <span className="italic">
                     {new Date(reportParams[0]?.reportLastUpdateAt || "").toLocaleDateString("es-ES") || "--"}
                   </span>

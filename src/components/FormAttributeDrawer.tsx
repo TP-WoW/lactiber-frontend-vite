@@ -34,12 +34,18 @@ import { Field, FieldGroup, FieldLabel } from "./ui/field";
 import { Checkbox } from "./ui/checkbox";
 import { sampleDataset, sampleTags } from "@/data/dummy-data";
 import { sampleFrecuencies } from "@/data/data";
+import { useTranslation } from "react-i18next";
 
 export function FormAttributeDrawer({
   item,
+  open,
+  onOpenChange,
 }: {
   item: FormAttributeUpdateType;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
+  const {t} = useTranslation("common");
   const { items, setItems } = useFormEditor();
   const curItem: FormAttributeUpdateType =
     items.find((it) => it.id === item.id) ?? item;
@@ -162,7 +168,7 @@ export function FormAttributeDrawer({
       const slug = sampleConfigData.manualSample.label
         .toLowerCase()
         .replace(/\s+/g, "_");
-        setSampleConfigData((prevConfig) =>
+      setSampleConfigData((prevConfig) =>
         prevConfig
           ? {
               ...prevConfig,
@@ -179,13 +185,22 @@ export function FormAttributeDrawer({
     setNewSettings((prevSettings) => ({
       ...prevSettings,
       optionsJson: options,
-      sampleConfigJson: sampleConfigData ? JSON.stringify(sampleConfigData) : undefined,
+      sampleConfigJson: sampleConfigData
+        ? JSON.stringify(sampleConfigData)
+        : undefined,
     }));
     console.log("New Settings to Save:", newSettings);
     setItems((prevItems) =>
       prevItems.map((it) =>
         it.id === curItem?.id
-          ? { ...it, ...newSettings, options: options, sampleConfigJson: sampleConfigData ? JSON.stringify(sampleConfigData) : undefined }
+          ? {
+              ...it,
+              ...newSettings,
+              options: options,
+              sampleConfigJson: sampleConfigData
+                ? JSON.stringify(sampleConfigData)
+                : undefined,
+            }
           : it,
       ),
     );
@@ -196,10 +211,11 @@ export function FormAttributeDrawer({
   };
 
   return (
-    <Drawer direction="right">
+    <Drawer direction="right" open={open} onOpenChange={onOpenChange}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="hover:cursor-pointer">
-          <Settings className="text-secondary-foreground hover:cursor-pointer" />
+        <Button variant="outline" className="hover:cursor-pointer flex items-center justify-between w-fit">
+          {/* {t("edit")} */}
+          <Settings className="hover:cursor-pointer" />
         </Button>
       </DrawerTrigger>
       <DrawerContent className="">
@@ -209,13 +225,13 @@ export function FormAttributeDrawer({
         </DrawerHeader>
         <Tabs defaultValue="general">
           <TabsList variant="line">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsTrigger value="general">{t("general")}</TabsTrigger>
+            <TabsTrigger value="advanced">{t("advanced")}</TabsTrigger>
           </TabsList>
           <TabsContent value="general">
             <div className="no-scrollbar overflow-y-auto px-4 flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
+                <label className="block text-sm font-medium mb-1">{t("name")}</label>
                 <Input
                   className="w-full border rounded px-2 py-1"
                   defaultValue={newSettings.name || item.name}
@@ -224,7 +240,7 @@ export function FormAttributeDrawer({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Label</label>
+                <label className="block text-sm font-medium mb-1">{t("label")}</label>
                 <Input
                   className="w-full border rounded px-2 py-1"
                   defaultValue={newSettings.label || item.label}
@@ -234,7 +250,7 @@ export function FormAttributeDrawer({
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Description
+                  {t("description")}
                 </label>
                 <Textarea
                   className="w-full border rounded px-2 py-1"
@@ -249,7 +265,7 @@ export function FormAttributeDrawer({
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Default Value
+                  {t("defaultValue")}
                 </label>
                 <Input
                   className="w-full border rounded px-2 py-1"
@@ -298,10 +314,10 @@ export function FormAttributeDrawer({
                 curItem?.dataType === "checkbox") && (
                 <div className="w-full flex flex-col gap-2">
                   <label className="block text-sm font-medium mb-1">
-                    Options
+                    {t("options")}
                   </label>
                   <label className="block text-sm font-medium mb-1">
-                    Default
+                    {t("default")}
                   </label>
                   <Input
                     className="w-full border rounded px-2 py-1"
@@ -322,7 +338,7 @@ export function FormAttributeDrawer({
                     />
                   ))}
                   <Separator className="my-2" />
-                  <Button onClick={handleAddOption}>Add Option</Button>
+                  <Button onClick={handleAddOption}>{t("addOption")}</Button>
                 </div>
               )}
               {curItem?.dataType === "sample" && sampleConfigData && (
@@ -336,9 +352,9 @@ export function FormAttributeDrawer({
         </Tabs>
 
         <DrawerFooter>
-          <Button onClick={handleSave}>Save</Button>
+          <Button onClick={handleSave}>{t("save")}</Button>
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("cancel")}</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
