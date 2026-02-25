@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite && vitepress dev docs",
+    "dev:all": "concurrently \"vite --port 5173\" \"vitepress dev docs --port 5174\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -58,6 +59,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-i18next": "^7.8.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "concurrently": "^8.2.2",
     "eslint": "^10.0.2",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
