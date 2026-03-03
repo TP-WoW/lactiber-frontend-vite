@@ -18,6 +18,7 @@ import {
   Circle,
   ChevronDownCircle,
   CalendarClock,
+  ChartBarBig,
 } from "lucide-react";
 import type { ForwardRefExoticComponent } from "react";
 
@@ -87,6 +88,17 @@ export const data = {
           title: "database",
           url: "/designer/database",
         },
+      ],
+    },
+    {
+      title: "reports",
+      url: "/reports",
+      icon: ChartBarBig,
+      items: [
+        {
+          title: "reports",
+          url: "/reports",
+        },       
       ],
     },
     {

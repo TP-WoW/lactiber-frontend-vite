@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ReportStatus, type DataType, type FormInfo, type FormReport } from "@/types/types";
+import { ReportStatus, type DataType, type FormInfo, type FormReport, type LookupType } from "@/types/types";
 import { PlusCircleIcon, Save, UserRoundPen } from "lucide-react";
 import {
   Select,
@@ -27,6 +27,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { keysToCamelCase } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { useUser } from "@/hooks/use-user";
+import { v4 as uuidv4 } from 'uuid';
+import { datasourcesSample as datasources } from "@/data/dummy-data";
+
 
 export function AddNewFormInstance({ forms }: { forms: FormInfo[] }) {
   console.log("Forms in Dialog:", forms);
@@ -36,11 +40,13 @@ export function AddNewFormInstance({ forms }: { forms: FormInfo[] }) {
     type: string;
   } | null>(null);
 
+  const {t} = useTranslation("common");
+
   const handleCreateReport = async () => {
     console.log("Creating report...", newReportData);
     // Aquí va la lógica para crear un nuevo informe
     if (!newReportData || !newReportData.type) {
-      toast("Por favor, completa todos los campos antes de crear el informe.");
+      toast(t("fillAllFieldsToCreateReport"));
       return;
     }
     const data: FormReport = {
@@ -99,33 +105,33 @@ export function AddNewFormInstance({ forms }: { forms: FormInfo[] }) {
         <DialogTrigger asChild>
           <Button className="m-4 hover:cursor-pointer">
             <PlusCircleIcon />
-            Crear Nuevo Informe
+            {t("createNewReport")}
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
-            <DialogTitle>Nuevo Informe</DialogTitle>
+            <DialogTitle>{t("newReport")}</DialogTitle>
             <DialogDescription>
-              Rellena los siguientes campos para crear un nuevo informe.
+              {t("fillFieldsToCreateNewForm")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid gap-3">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t("name")}</Label>
               <Input
                 id="name"
                 name="name"
-                defaultValue={newReportData?.name || "Reporte de producción"}
+                defaultValue={newReportData?.name || t("defaultName")}
                 onChange={(e) => handleInputChange("name", e.target.value)}
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t("description")}</Label>
               <Textarea
                 id="description"
                 name="description"
                 defaultValue={
-                  newReportData?.description || "Descripción del informe"
+                  newReportData?.description || t("defaultDescription")
                 }
                 onChange={(e) =>
                   handleInputChange("description", e.target.value)
@@ -134,11 +140,11 @@ export function AddNewFormInstance({ forms }: { forms: FormInfo[] }) {
             </div>
             <Select onValueChange={(e) => handleInputChange("type", e)}>
               <SelectTrigger className="w-full max-w-48">
-                <SelectValue placeholder="Tipo de informe" />
+                <SelectValue placeholder={t("reportType")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Tipo de informe</SelectLabel>
+                  <SelectLabel>{t("reportType")}</SelectLabel>
                   {forms.map((form) => (
                     <SelectItem key={form.id} value={form.id}>
                       {form.title}
@@ -150,9 +156,9 @@ export function AddNewFormInstance({ forms }: { forms: FormInfo[] }) {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{t("cancel")}</Button>
             </DialogClose>
-            <Button onClick={handleCreateReport}>Crear Informe</Button>
+            <Button onClick={handleCreateReport}>{t("createReport")}</Button>
           </DialogFooter>
         </DialogContent>
       </form>
@@ -323,6 +329,147 @@ export function AddCustomComponentDialog({ handleAddNewItem }: { handleAddNewIte
             >
               {t("addCustomComponent")}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </form>
+    </Dialog>
+  );
+}
+
+export function AddNewLookup() {
+  const [newLookupData, setNewLookupData] = useState<LookupType | null>(null);
+  const {t} = useTranslation("common");
+  const {user} = useUser();
+
+  const handleCreateLookup = async () => {
+    console.log("Creating lookup...", newLookupData);
+    // Aquí va la lógica para crear un nuevo informe
+    if (!newLookupData || !newLookupData.name || !newLookupData.commandType) {
+      toast(t("fillAllFieldsToCreateLookup"));
+      return;
+    }
+    const data: LookupType = {
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      name: newLookupData.name,
+      description: newLookupData.description,
+      commandType: newLookupData.commandType,
+      createdBy: user?.userName, 
+      updatedAt: new Date().toISOString(),
+      updatedBy: user?.userName,
+      schema: newLookupData.schema,
+      commandText: newLookupData.commandText,
+    };
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/lookups`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Error creating lookup");
+      }
+      const result: FormReport = await response.json();
+      const resultCamel = keysToCamelCase(result) as FormReport;
+
+      toast(`Nuevo Informe Creado: ${resultCamel.name}`);
+    } catch (error) {
+      toast("Hubo un error al crear el informe.");
+      console.error("Error creating report:", error);
+    }
+  };
+
+  const handleInputChange = (
+    field: "name" | "description" | "datasource" | "commandType" | "schema" | "commandText",
+    value: string,
+  ) => {
+    setNewLookupData((prevData) => {
+      const data = prevData ?? {
+        id: uuidv4(),
+        name: "",
+        description: "",
+        datasource: "",
+        commandType: "",
+        schema: "",
+        commandText: "",
+        createdAt: new Date().toISOString(),
+        createdBy: user?.userName || "",
+        updatedAt: new Date().toISOString(),
+        updatedBy: user?.userName || "",
+      };
+      return {
+        ...data,
+        [field]: value,
+      };
+    });
+    console.log("Updated newLookupData:", newLookupData);
+  };
+  return (
+    <Dialog>
+      <form>
+        <DialogTrigger asChild>
+          <Button className="m-4 hover:cursor-pointer">
+            <PlusCircleIcon />
+           {t("createNewLookup")}
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-106.25">
+          <DialogHeader>
+            <DialogTitle>{t("createNewLookup")}</DialogTitle>
+            <DialogDescription>
+              {t("fillInFieldsToCreateNewLookup")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-3">
+              <Label htmlFor="name">{t("name")}</Label>
+              <Input
+                id="name"
+                name="name"
+                defaultValue={newLookupData?.name || "Reporte de producción"}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="description">{t("description")}</Label>
+              <Textarea
+                id="description"
+                name="description"
+                defaultValue={
+                  newLookupData?.description || t("defaultDescription")
+                }
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
+              />
+            </div>
+             <Label htmlFor="datasource">{t("datasource")}</Label>
+            <Select onValueChange={(e) => handleInputChange("datasource", e)}>
+              <SelectTrigger className="w-full max-w-48">
+                <SelectValue placeholder={t("datasource")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>{t("datasource")}</SelectLabel>
+                  {datasources.map((datasource) => (
+                    <SelectItem key={datasource.id} value={datasource.id}>
+                      {datasource.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleCreateLookup}>{t("addLookup")}</Button>
           </DialogFooter>
         </DialogContent>
       </form>

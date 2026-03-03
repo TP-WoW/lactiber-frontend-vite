@@ -127,3 +127,9 @@ export const sampleTags = [
     value: "pres-aceite-ciguenal-reductora",
   },
 ];
+
+export const datasourcesSample = [
+  { id: "41D1C42E-D17C-43FC-9CCA-06C9F652B0F8", name: "TPFORMS" },
+  { id: "asset-framework", name: "Asset Framework" },
+  { id: "sql-server-database", name: "SQL Server Database" },
+];

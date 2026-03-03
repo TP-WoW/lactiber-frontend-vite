@@ -27,9 +27,33 @@ import Lookups from "./pages/Lookups";
 import { CustomForm } from "./pages/Form";
 import FormEditor from "./pages/FormEditor";
 import Documentation from "./pages/Documentation";
+import Login from "./pages/Login";
+import { useUser } from "./hooks/use-user";
+import Reports from "./pages/Reports";
 
 function App() {
   const url = useLocation()?.pathname;
+  const {user} = useUser();
+  if (url === "/" || url === "/login") {
+    return (
+      <div>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </div>
+    );
+  }
+  if (!user) {
+    return (
+      <div>
+        <Routes>
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </div>
+    );
+  }
+
   return (
     <div>
       <SidebarProvider>
@@ -79,7 +103,7 @@ function App() {
             </div>
           </header>
           <Routes>
-            <Route path="/" element={<Home />} />
+            {/* <Route path="/" element={<Home />} /> */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/forms" element={<Forms />} />
             <Route path="/dashboard/forms/form" element={<CustomForm />} />
@@ -90,6 +114,7 @@ function App() {
             <Route path="/designer/lookups" element={<Lookups />} />
             <Route path="/designer/database" element={<Database />} />
             <Route path="/docs" element={<Documentation />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </SidebarInset>

@@ -168,6 +168,7 @@ export type ReportParameter = {
   updatedBy?: string;
   options?: Array<{ value: string; label: string }>;
 };
+
 export type TransformedReport = {
   id: number;
   reportId: string;
@@ -209,3 +210,43 @@ export type LoginResponse = User & {
   statusCode: number;
   message: string;
 };
+
+export type LookupType = {
+  id: string;
+  name: string;
+  description?: string;
+  datasource?: string;
+  commandType: string;
+  schema?: string;
+  commandText: string;
+  createdAt: string;
+  createdBy?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+  optionsJson?: string;
+  parametersJson?: string;
+}
+
+/*
+
+CREATE TABLE [dbo].[Lookups](
+	[Id] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](200) NOT NULL,
+	[Description] [nvarchar](500) NULL,
+	[Datasource] [uniqueidentifier] NULL,
+	[CommandType] [nvarchar](50) NOT NULL,
+	[Schema] [nvarchar](50) NULL,
+	[CommandText] [nvarchar](max) NOT NULL,
+	[CreatedAt] [datetime2](3) NOT NULL,
+	[CreatedBy] [nvarchar](200) NULL,
+	[UpdatedAt] [datetime2](3) NULL,
+	[UpdatedBy] [nvarchar](200) NULL,
+	[OptionsJson] [nvarchar](max) NULL,
+	[ParametersJson] [nvarchar](max) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+*/
